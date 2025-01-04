@@ -330,8 +330,11 @@
                 v-if="statsData.length && getStatus(statsData.length - 1).status === 'Fullfilled'"
                 :key="'extra-row'"
               >
-                <td colspan="6" class="next-start-date">
+                <td colspan="3" class="next-start-date">
                   End Date: {{ getFormattedStartDate(statsData.length) }}
+                </td>
+                <td colspan="3">
+                  All-Time Orbs: {{ formatNumber(getAllTimeOrbs(statsData.length)) }}
                 </td>
               </tr>
             </tbody>
