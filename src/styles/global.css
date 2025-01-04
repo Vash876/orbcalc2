@@ -8,32 +8,70 @@ body {
   font-size: 12px; /* Kleinere Schriftgröße */
 }
 
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 10px;
+  position: fixed;  /* Fixiert das Menü oben */
+  top: 0;
+  left: 0;
+  width: 100%;
+  background-color: #1e1e1e; /* Dunkler Hintergrund für das Menü */
+  padding: 5px 0; /* Etwas Abstand oben und unten */
+  z-index: 10;  /* Damit es immer über anderen Inhalten bleibt */
+}
+
+.navbar a {
+  font-size: 14px;
+  color: #ffffff;
+  text-decoration: none;
+  padding: 10px 13px; /* Polsterung für Klickbare Fläche */
+  display: inline-flex; /* Stellt sicher, dass alle Links nebeneinander bleiben */
+  align-items: center; /* Vertikale Zentrierung des Textes */
+}
+
+.navbar a:hover {
+  color: #b0b0b0; /* Ein etwas helleres Grau bei Hover */
+  background-color: #000000; /* Dunkler Hintergrund */
+  border-radius: 5px; /* Optionale Abrundung für einen schöneren Effekt */
+}
+
+.active-link {
+  color: #76c7c0; /* Heller Türkis */
+  background-color: #000000; /* Gleicher Hintergrund wie Hover */
+  border-radius: 5px; /* Optional */
+}
   
   /* Container für das gesamte Tool */
   .calculator-container {
     max-width: 535px;
-    margin: 20px auto;
-    padding: 20px;
+    margin: 57px auto 0;
+    padding: 20px;  
     border: 1px solid #444;
     border-radius: 8px;
     background-color: #282828; /* Etwas helleres Schwarz */
+    position: relative; /* Für bessere Kontrolle bei späteren Positionierungen */
   }
   
   /* Header und Titel */
   h1, h2, h3 {
     font-size: 18px;
     margin-bottom: 10px;
+    padding-bottom: 10px;
     text-align: center;
     color: #fff;
   }
   
   /* Input-Bereich */
   .input-area {
-    margin-bottom: 20px;
     padding: 10px;
+    margin-bottom: 5px;
     border: 1px solid #444;
     border-radius: 5px;
     background-color: #1f1f1f; /* Abgesetzte Box */
+    animation: hei 5s 1 0s linear forwards;
   }
   
   /* Boosts-Eingabefelder */
@@ -72,9 +110,17 @@ body {
   }
   
   /* Eingabefelder */
-    /* Für Firefox */
-    input[type="number"] {
-    -moz-appearance: textfield; /* Entfernt die Pfeile */
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+  }
+
+    .boost-row .extra-input {
+      max-width: 90px;
     }
 
   .boost-row input {
@@ -105,7 +151,6 @@ body {
 
   .boost-row button {
     margin: 0; /* Entfernt unerwünschte Standard-Margins */
-    padding: 5px 8px; /* Einheitliche Padding für die Buttons */
     font-size: 13px;
     width: 25px;
     height: 25px;
@@ -129,6 +174,14 @@ body {
     margin-left: auto;
   }
 
+  .reset-button:hover {
+    transform: scale(1.05);
+  }
+  
+  .reset-button:active {
+    transform: scale(1);
+  }
+
   .boost-row .current-increase {
     margin-right: 15px;
   }
@@ -143,8 +196,23 @@ body {
     margin-left: 25px;
   }
 
+  .boost-row .shortmulti-display {
+    max-width: 60px;
+    font-weight: bold;
+    display: flex; /* Flexbox aktivieren */
+    align-items: center; /* Vertikale Zentrierung */
+    margin-left: 15px;
+    height: 100%; /* Höhe des Containers */
+  }
+
   .boost-row .cup-label {
     max-width:363px;
+  }
+
+  @media (max-width: 600px) {
+    .boost-row .cup-label {
+      max-width: 200px; /* Breite auf Smartphones anpassen */
+    }
   }
 
   .cup-display{
@@ -158,6 +226,11 @@ body {
   
   .current-checkbox{
     margin-left: 31px;
+    transform: scale(1.4); /* Größere Checkboxen */
+  }
+
+  .current-checkbox2{
+    margin-left: 58px;
     transform: scale(1.4); /* Größere Checkboxen */
   }
   
@@ -187,29 +260,449 @@ body {
 
   /* Datepicker */
   .boost-row .date-picker {
-    font-size: 11px; /* Schriftgröße des Texts */
+    font-size: 9px; /* Schriftgröße des Texts */
     width: 90px; /* Breite des Felds */
     height: 17px;
     max-width: 300px;
   }
 
   .date-picker.error {
-    border-color: red;
-    box-shadow: 0 0 5px red;
+    box-shadow: 0 0 3px dodgerblue;
   }
   
-  /* Tooltip und Multiplikatoren */
-  .multiplier-display {
-    font-size: 12px; /* Kleinere Schriftgröße */
-    color: #aaa;
-    margin-left: 10px;
+  /* Rand für Improved Stats */
+  .border-green {
+    box-shadow: 0 0 3px lime;
   }
   
-  /* Footer */
-  footer {
-    margin-top: 20px;
-    text-align: center;
-    font-size: 12px;
-    color: #888;
+  .border-blue {
+    box-shadow: 0 0 3px dodgerblue;
   }
+
+  /* Orb Results */
+  .orb-results-table {
+    width: 100%; /* Tabelle auf volle Breite */
+    border-collapse: collapse; /* Entfernt Abstände zwischen Zellen */
+    margin-top: 20px; /* Abstand zum oberen Inhalt */
+    background-color: #1f1f1f; /* Dunkler Hintergrund */
+    color: #f0f0f0; /* Helle Schriftfarbe */
+    border: 1px solid #444; /* Rahmen um die Tabelle */
+    border-radius: 8px; /* Abgerundete Ecken */
+    text-align: center; /* Zentrierter Text in der Tabelle */
+  }
+  
+  .orb-results-table th {
+    background-color: #282828; /* Dunklerer Hintergrund für Header */
+    font-weight: bold; /* Fettgedruckt */
+    text-transform: uppercase; /* Großbuchstaben */
+    padding: 10px; /* Innenabstand */
+    border-bottom: 2px solid #444; /* Unterer Rahmen für Header */
+  }
+  
+  .orb-results-table td {
+    padding: 15px; /* Innenabstand */
+    border-top: 1px solid #444; /* Oberer Rahmen */
+    font-size: 1.2em; /* Größere Schriftgröße für Werte */
+  }
+  
+  .orb-results-table .arrow-cell {
+    font-size: 1.5em; /* Größere Schriftgröße für den Pfeil */
+    color: #00ff00; /* Grün für den Pfeil */
+  }
+  
+  .orb-results-table .current-orbs strong {
+    color: #ffffff; /* Weiß für Current Orbs */
+  }
+  
+  .orb-results-table .improved-orbs strong {
+    font-size: 1.5em;
+    color: #14be14; /* Grün für Improved Orbs */
+  }
+
+  .text-green {
+    color: green;
+    font-weight: bold;
+  }
+  
+  .text-red {
+    color: red;
+    font-weight: bold;
+  }  
+
+  .status-icon {
+    font-size: 1.5em; /* Größe anpassen */
+    display: inline-block; /* Optional für bessere Ausrichtung */
+    margin-left: 5px; /* Platz nach links */
+    margin-bottom: 1px;
+  }
+
+  .status-container {
+    display: flex;
+    align-items: center; /* Vertikale Zentrierung */
+    justify-content: center; /* Horizontale Zentrierung (optional) */
+    gap: 5px; /* Abstand zwischen Symbol und Text */
+  }
+
+  /* Short Results */
+  .boost-row .missing-hours {
+    font-weight: bold; /* Fettschrift */
+    margin-left: auto;
+    margin-right: 15px; /* Abstand zum rechten Rand */
+    text-align: right; /* Rechts ausrichten */
+  }
+
+  .short-results-table {
+    width: 100%; /* Tabelle auf volle Breite */
+    border-collapse: collapse; /* Entfernt Abstände zwischen Zellen */
+    margin-top: 20px; /* Abstand zum oberen Inhalt */
+    background-color: #1f1f1f; /* Dunkler Hintergrund */
+    color: #f0f0f0; /* Helle Schriftfarbe */
+    border: 1px solid #444; /* Rahmen um die Tabelle */
+    border-radius: 8px; /* Abgerundete Ecken */
+    text-align: center; /* Zentrierter Text in der Tabelle */
+    table-layout: fixed; /* Feste Spaltenbreiten */
+  }
+  
+  .short-results-table th {
+    background-color: #282828; /* Dunklerer Hintergrund für Header */
+    font-weight: bold; /* Fettgedruckt */
+    text-transform: uppercase; /* Großbuchstaben */
+    padding: 10px; /* Innenabstand */
+    border-bottom: 2px solid #444; /* Unterer Rahmen für Header */
+  }
+  
+  .short-results-table td {
+    padding: 15px; /* Innenabstand */
+    border-top: 1px solid #444; /* Oberer Rahmen */
+    font-size: 1.2em; /* Größere Schriftgröße für Werte */
+    word-wrap: break-word; /* Zeilenumbruch bei langen Inhalten */
+  }
+  
+  /* Feste Breiten für die Spalten */
+  .short-results-table th:nth-child(1),
+  .short-results-table td:nth-child(1) {
+    width: 33%; /* Erste Spalte */
+  }
+  
+  .short-results-table th:nth-child(2),
+  .short-results-table td:nth-child(2) {
+    width: 33%; /* Zweite Spalte */
+  }
+  
+  .short-results-table th:nth-child(3),
+  .short-results-table td:nth-child(3) {
+    width: 34%; /* Dritte Spalte */
+  }
+  
+  /* Instructions */
+.boost-row .instructions-button {
+  display: inline-block;
+  background-color: #22911e;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 13px;
+  width: 130px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.instructions-button:hover {
+  transform: scale(1.05);
+}
+
+.instructions-button:active {
+  transform: scale(1);
+}
+
+.blurred-background {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(1px);
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+}
+
+.description {
+  position: absolute;
+  color: white;
+  font-size: 1.2em;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 10px;
+  border-radius: 5px;
+}  
+
+/* Shorts */
+.boost-row .auto-button {
+  background-color: #2995c7;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 13px;
+  width: 130px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.auto-button:hover {
+  transform: scale(1.05);
+}
+
+.auto-button:active {
+  transform: scale(1);
+}
+
+/* Add und Remove Button */
+.short-buttons-container {
+  display: flex; /* Macht den Container flexibel */
+  justify-content: space-between; /* Positioniert die Buttons links und rechts */
+  align-items: center; /* Zentriert die Buttons vertikal */
+  margin-top: 10px; /* Abstand zum vorherigen Element */
+}
+
+.remove-short-button,
+.add-short-button {
+  display: inline-block;
+  font-size: 13px;
+  color: #fff;
+  border: none;
+  height: 28px;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.remove-short-button {
+  background-color: #ff5757;
+}
+
+.remove-short-button:hover {
+  transform: scale(1.05);
+}
+
+.remove-short-button:active {
+  transform: scale(1);
+}
+
+.add-short-button {
+  background-color: #047e29;
+  margin-left: auto;
+}
+
+.add-short-button:hover {
+  transform: scale(1.05);
+}
+
+.add-short-button:active {
+  transform: scale(1);
+}
+
+.add-short-button:disabled {
+  background-color: #999; /* Grau für deaktivierten Zustand */
+  cursor: not-allowed; /* Zeigt an, dass der Button nicht anklickbar ist */
+}
+
+
+
+/* Tooltip und Multiplikatoren */
+.multiplier-display {
+  font-size: 12px; /* Kleinere Schriftgröße */
+  color: #aaa;
+  margin-left: 10px;
+}
+
+/* Modal */
+.stats-button {
+  background-color: #2995c7;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  padding: 10px 20px;
+  font-size: 14px;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+
+.stats-button:hover {
+  background-color: #247ba1;
+  transform: translateX(-50%) scale(1.05);
+}
+
+/* Modal Content */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Halbtransparenter Hintergrund */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  position: relative; /* Relative Positionierung für den Close-Button */
+  background-color: #1f1f1f; /* Modal-Hintergrund */
+  color: #f0f0f0;
+  padding: 20px;
+  border-radius: 8px;
+  width: 90%; /* Breite auf Mobilgeräten begrenzen */
+  max-width: 650px; /* Maximale Breite auf großen Bildschirmen */
+  max-height: 90%; /* Maximale Höhe auf Mobilgeräten */
+  overflow-y: auto; /* Scrollverhalten für vertikalen Inhalt */
+}
+
+.modal-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.modal-content::-webkit-scrollbar-thumb {
+  background: #444; /* Scrollbar-Farbe */
+  border-radius: 4px;
+}
+
+.modal-content ul {
+  margin-top: 15px;
+  padding-left: 20px;
+  font-size: 15px;
+}
+
+.modal-content li {
+  margin-top: 15px;
+  padding-left: 20px;
+}
+
+.modal-close {
+  position: absolute !important;
+  top: 10px !important; /* Abstand vom oberen Rand des Modals */
+  right: 10px !important; /* Abstand vom rechten Rand des Modals */
+  background-color: #ff5757 !important; /* Rote Hintergrundfarbe */
+  color: white !important; /* Weiße Schriftfarbe */
+  border: none !important; /* Kein Rand */
+  border-radius: 50% !important; /* Rundes Design */
+  cursor: pointer !important;
+  width: 30px !important; /* Feste Breite für den runden Button */
+  height: 30px !important; /* Gleiche Höhe für Rundheit */
+  display: flex !important; /* Zentrierung von Text oder Symbol */
+  align-items: center !important; /* Vertikale Zentrierung */
+  justify-content: center !important; /* Horizontale Zentrierung */
+  font-size: 16px !important; /* Schriftgröße */
+  line-height: 1 !important; /* Verhindert Überschreiten des Kreises */
+  transition: background-color 0.3s ease !important; /* Sanfte Farbänderung beim Hover */
+}
+
+
+.modal-close:hover {
+  background-color: #ff0000; /* Etwas hellere Farbe beim Hover */
+}
+
+
+.stats-results {
+  width: 100%; /* Tabelle auf volle Breite */
+  border-collapse: collapse; /* Entfernt Abstände zwischen Zellen */
+  margin-top: 20px; /* Abstand zum oberen Inhalt */
+  background-color: #1f1f1f; /* Dunkler Hintergrund */
+  color: #f0f0f0; /* Helle Schriftfarbe */
+  border: 1px solid #444; /* Rahmen um die Tabelle */
+  border-radius: 8px; /* Abgerundete Ecken */
+  text-align: center; /* Zentrierter Text in der Tabelle */
+}
+
+.stats-results th {
+  background-color: #282828; /* Dunklerer Hintergrund für Header */
+  font-weight: bold; /* Fettgedruckt */
+  text-transform: uppercase; /* Großbuchstaben */
+  padding: 10px; /* Innenabstand */
+  border-bottom: 2px solid #444; /* Unterer Rahmen für Header */
+}
+
+.stats-results td {
+  padding: 15px; /* Innenabstand */
+  border-top: 1px solid #444; /* Oberer Rahmen */
+  font-size: 1.2em; /* Größere Schriftgröße für Werte */
+}
+
+.stats-results .status {
+  font-weight: bold; /* Fettgedruckt für Status */
+}
+
+.stats-results .status-missing {
+  color: #ff4d4d; /* Rote Schrift für "Missing" */
+}
+
+.stats-results .date-row {
+  font-size: 1.1em; /* Leicht kleinere Schriftgröße für Datumszeilen */
+  color: #ffd700; /* Goldene Farbe für das letzte Datum */
+}
+
+.stats-results .centered-text {
+  text-align: center; /* Zentrierter Text */
+}
+
+.stats-results .bold-text {
+  font-weight: bold; /* Fettgedruckter Text */
+}
+
+/* Blur-Effekt für den Hintergrund */
+.blurred-content {
+  filter: blur(5px);
+  pointer-events: none; /* Blockiert Interaktionen */
+}
+
+/* Tooltips */
+.tooltip {
+  position: relative; /* Für absolute Positionierung des Tooltips */
+  display: inline-block; /* Damit es mit den Labels oder Eingaben funktioniert */
+}
+
+.tooltiptext {
+  visibility: hidden; /* Standardmäßig nicht sichtbar */
+  background-color: #555; /* Dunkler Hintergrund für den Tooltip */
+  color: #fff; /* Weiße Schriftfarbe */
+  text-align: center; /* Zentrierter Text */
+  border-radius: 5px; /* Abgerundete Ecken */
+  padding: 5px 10px; /* Polsterung innerhalb des Tooltips */
+  position: absolute; /* Absolute Positionierung relativ zum Container */
+  z-index: 1; /* Sicherstellen, dass der Tooltip über allem anderen liegt */
+  bottom: 125%; /* Positionierung über dem Element */
+  left: 50%;
+  transform: translateX(-50%);
+  opacity: 0; /* Unsichtbar bei Hover-Off */
+  transition: opacity 0.3s ease; /* Sanfte Übergänge */
+  width: 100px; /* Feste Breite des Tooltip-Containers */
+  word-wrap: break-word; /* Längere Wörter umbrechen */
+  height: auto; /* Automatische Anpassung der Höhe */
+}
+
+.boost-row .tooltiptext {
+  white-space: normal; /* Text in mehreren Zeilen anzeigen */
+}
+
+
+.tooltip:hover .tooltiptext {
+  visibility: visible; /* Sichtbar bei Hover */
+  opacity: 1; /* Volle Deckkraft */
+}
+.invisible {
+  visibility: hidden; /* Unsichtbar, aber Platz bleibt erhalten */
+}
+
+
+
+/* Footer */
+footer {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 12px;
+  color: #888;
+}
   

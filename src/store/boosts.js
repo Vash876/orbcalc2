@@ -1,3 +1,14 @@
+/**************************************************************************************************** 
+key: Der Schlüssel des Boosts
+label: Der Name des Boosts
+type: Der Typ des Boosts (number oder boolean)
+expand: wird benutzt um die checkbox zu deaktivieren, wenn der max Wert erreicht ist
+tooltip: Der Tooltip-Text für den Boost
+permanent: wird benutzt um den Boost in weiteren Shorts nicht kleiner zu machen, als er im Fenster oben drüber ist
+multiplier: Der Multiplikator für den Boost
+max: Der maximale Wert, um den der Boost erweitert werden kann
+*****************************************************************************************************/ 
+
 export const boosts = [
     {
       key: 'hoursInTR',
@@ -23,8 +34,9 @@ export const boosts = [
       key: 'loopMods',
       label: 'Loop Mods',
       type: 'number',
-      expand: '0',
+      expand: '1',
       tooltip: '0',
+      multiplier: 1,
     },
   
     {
@@ -33,6 +45,7 @@ export const boosts = [
       type: 'number',
       expand: '0',
       tooltip: 'max Value: 10',
+      permanent: 1,
       multiplier: (value) => 1 + 0.01 * value,
       max: 10
     },
@@ -41,8 +54,9 @@ export const boosts = [
       key: 'm0',
       label: 'm0',
       type: 'number',
-      expand: '0',
+      expand: '1',
       tooltip: '0',
+      permanent: 1,
       multiplier: (value) => Math.pow(1.1, value),
     },
   
@@ -50,8 +64,9 @@ export const boosts = [
       key: 'r9',
       label: 'R9',
       type: 'number',
-      expand: '1',
+      expand: '0',
       tooltip: '0',
+      permanent: 1,
       multiplier: (value) => Math.pow(1.08, value),
       max: 100
     },
@@ -60,8 +75,9 @@ export const boosts = [
       key: 'inscryption52',
       label: 'Inscryption #52',
       type: 'number',
-      expand: '1',
+      expand: '0',
       tooltip: 'max Value: 8',
+      permanent: 1,
       multiplier: (value) => Math.pow(1.03, value),
       max: 8
     },
@@ -70,8 +86,9 @@ export const boosts = [
       key: 'inscryption78',
       label: 'Inscryption #78',
       type: 'number',
-      expand: '1',
+      expand: '0',
       tooltip: 'max Value: 8',
+      permanent: 1,
       multiplier: (value) => Math.pow(1.08, value),
       max: 8
     },
@@ -80,7 +97,7 @@ export const boosts = [
       key: 'campaigns',
       label: 'Campaigns',
       type: 'number',
-      expand: '0',
+      expand: '1',
       tooltip: 'Boon of Ouroboros required, else 0',
       multiplier: (value) => Math.pow(1.006, value),
     },
@@ -91,6 +108,7 @@ export const boosts = [
       type: 'number',
       expand: '1',
       tooltip: '0',
+      permanent: 1,
       multiplier: (value) => {
         const baseMultiplier = Math.pow(1 + 0.0035, value);
         const levelMultiplier = Math.pow(1.04, Math.floor(value / 10));
@@ -101,7 +119,7 @@ export const boosts = [
   
     {
       key: 'iap',
-      label: 'IAP Traversal Pack',
+      label: 'IAP Trav. Pack',
       type: 'boolean',
       expand: '0',
       tooltip: '0',
@@ -130,7 +148,7 @@ export const boosts = [
       key: 'db2',
       label: 'Void Badge #1',
       type: 'boolean',
-      expand: '0',
+      expand: '1',
       tooltip: '0',
       multiplier: 1.25,
     },
@@ -139,7 +157,7 @@ export const boosts = [
       key: 'db4',
       label: 'Void Badge #2',
       type: 'boolean',
-      expand: '0',
+      expand: '1',
       tooltip: '0',
       multiplier: 1.25,
     },
@@ -148,7 +166,7 @@ export const boosts = [
       key: 'db6',
       label: 'Void Badge #3',
       type: 'boolean',
-      expand: '0',
+      expand: '1',
       tooltip: '0',
       multiplier: 1.25,
     },
@@ -157,7 +175,7 @@ export const boosts = [
       key: 'db8',
       label: 'Void Badge #4',
       type: 'boolean',
-      expand: '0',
+      expand: '1',
       tooltip: '0',
       multiplier: 1.5,
     },
@@ -166,7 +184,7 @@ export const boosts = [
       key: 'db10',
       label: 'Void Badge #5',
       type: 'boolean',
-      expand: '0',
+      expand: '1',
       tooltip: '0',
       multiplier: 2,
     },

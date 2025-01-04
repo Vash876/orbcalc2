@@ -1,11 +1,11 @@
 import { createRouter, createWebHistory } from "vue-router";
-import Stats from "../components/Stats.vue";
+import OrbCalc from "../components/OrbCalc.vue";
 import ShortsPlanner from "../components/ShortsPlanner.vue";
 
 const routes = [
-  { path: "/stats", component: Stats },
+  { path: "/orb-calc", component: OrbCalc },
   { path: "/shorts-planner", component: ShortsPlanner },
-  { path: "/", redirect: "/stats" },
+  { path: "/", redirect: "/orb-calc" },
 ];
 
 const router = createRouter({
