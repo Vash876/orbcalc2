@@ -207,6 +207,7 @@ body {
 
   .boost-row .cup-label {
     max-width:363px;
+    margin-left:10px;
   }
 
   @media (max-width: 600px) {
