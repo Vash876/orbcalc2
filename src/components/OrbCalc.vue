@@ -38,6 +38,7 @@
             type="number"
             id="catchupMultiplier"
             class="cup-input"
+            tabindex="1"
             v-model.number="catchupMultiplier"
             @input="onCatchupMultiplierChange"
           />    
@@ -45,6 +46,7 @@
             type="number"
             id="improvedcatchupMultiplier"
             class="cup-input"
+            tabindex="-1"
             style="margin-left: 15px;"
             :value="getImprovedCup()" 
             readonly 
@@ -68,7 +70,7 @@
               :placeholder="'Value for ' + boost.label"
               :max="boost.max || null"
               class="current-input"
-              :tabindex="index + 1"
+              :tabindex="1 + index + 1"
               @blur="onInputChange(currentStats, boost.key, boost.max, improvedStats)"
               @input="onInputChange(currentStats, boost.key, boost.max, improvedStats)"
             />
@@ -290,18 +292,22 @@
         }
       },
       onCatchupMultiplierChange() {
-      const min = 1;
-      const max = 2;
+        const min = 1;
+        const max = 2;
 
-      if (this.catchupMultiplier < min) {
-        this.catchupMultiplier = min;
-      } else if (this.catchupMultiplier > max) {
-        this.catchupMultiplier = max;
-      }
+        // Begrenze den Wert auf den Bereich [1, 2]
+        if (this.catchupMultiplier < min) {
+          this.catchupMultiplier = min;
+        } else if (this.catchupMultiplier > max) {
+          this.catchupMultiplier = max;
+        }
 
-      // Begrenzen auf zwei Nachkommastellen
-      this.catchupMultiplier = parseFloat(this.catchupMultiplier.toFixed(4));
-    },
+        // Begrenze auf zwei Nachkommastellen
+        this.catchupMultiplier = parseFloat(this.catchupMultiplier.toFixed(4));
+
+        // Speichere den Wert im LocalStorage
+        localStorage.setItem('catchupMultiplier', this.catchupMultiplier);
+      },
       handleCheckboxChange(key, type) {
         handleCheckboxChange(key, type, this.currentStats, this.improvedStats, this.saveToLocalStorage);
       },
@@ -366,7 +372,11 @@
       this.improvedDate = stats.improvedDate || new Date(); // Globale Variable initialisieren
       this.datePickerValue = this.improvedDate; // Lokale Kopie setzen
       this.updateImprovedStats();
-      console.log("Initial catchupMultiplier:", this.currentStats.catchupMultiplier);
+
+      const storedMultiplier = localStorage.getItem('catchupMultiplier');
+      if (storedMultiplier) {
+        this.catchupMultiplier = parseFloat(storedMultiplier);
+      }
 
       // Dynamische Erkennung bei Fensteränderungen
       window.addEventListener("resize", this.checkIfMobile);
