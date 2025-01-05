@@ -206,20 +206,48 @@ body {
   }
 
   .boost-row .cup-label {
-    max-width:358px;
-    margin-left:10px;
+    flex: 1;
+    max-width: 120px;
+    text-align: left;
+    margin-right: 10px; 
+    margin-left: 5px;
+    font-size: 13px;
   }
 
+  .boost-row .cup-input {
+    display: flex;
+    align-items: center;
+    flex: 0 0 60px; /* Eingabefelder schmaler */
+    max-width: 90px;
+    padding: 5px;
+    text-align: center;
+    border: 1px solid #555;
+    border-radius: 4px;
+    background-color: #1a1a1a; /* Dunkler Hintergrund für Felder */
+    color: #f0f0f0;
+    font-size: 12px;
+  }
+
+.cupmulti {
+    margin-left: 202px; /* Abstand zum rechten Rand des Eltern-Elements */
+  } 
+
   @media (max-width: 600px) {
+    .boost-row label {
+      max-width: 92px;
+    }
     .boost-row .cup-label {
-      max-width: 200px; /* Breite auf Smartphones anpassen */
+      max-width: 92px;
+    }
+
+    .cupmulti {
+      margin-left: 30px;
     }
   }
 
-  .cup-display{
-    width: 60px;
-  }
+
   
+
   /* Checkboxen */
   .boosts-checkboxes {
     margin-top: 10px;
@@ -557,7 +585,7 @@ body {
   padding: 20px;
   border-radius: 8px;
   width: 90%; /* Breite auf Mobilgeräten begrenzen */
-  max-width: 650px; /* Maximale Breite auf großen Bildschirmen */
+  max-width: 667px; /* Maximale Breite auf großen Bildschirmen */
   max-height: 90%; /* Maximale Höhe auf Mobilgeräten */
   overflow-y: auto; /* Scrollverhalten für vertikalen Inhalt */
 }
@@ -696,8 +724,6 @@ body {
 .invisible {
   visibility: hidden; /* Unsichtbar, aber Platz bleibt erhalten */
 }
-
-
 
 /* Footer */
 footer {

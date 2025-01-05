@@ -38,11 +38,13 @@ export function calculateCupMultiplier(hoursInTR) {
 }
 
 //Berechnet die Orbs basierend auf den Werten und Boosts
-export function calculateOrbs(values, boosts) {
+export function calculateOrbs(values, boosts, overrideCatchUpMultiplier = null) {
   let result = 1;
 
-  // Berechne den Catch-Up-Multiplier separat
-  const catchUpMultiplier = calculateCupMultiplier(values.hoursInTR || 0);
+  // Wenn overrideCatchUpMultiplier angegeben ist, nutze diesen Wert
+  const catchUpMultiplier = overrideCatchUpMultiplier !== null 
+    ? overrideCatchUpMultiplier 
+    : calculateCupMultiplier(values.hoursInTR || 0);
 
   // Iteriere durch alle Boosts und berechne den Multiplikator
   boosts.forEach((boost) => {

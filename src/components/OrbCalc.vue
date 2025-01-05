@@ -28,20 +28,32 @@
           </div>
           <button @click="resetAllFields" class="reset-button">Reset All Fields</button>
         </div>
+
+        <!--Catch Up Multiplier-->
         <div class="boost-row">
-          <label class="cup-label">Catch-Up Multiplier</label>
-          <span class="cup-display">
-            {{ formatNumber(calculateCupMultiplier(currentStats.hoursInTR)) }}
-          </span>
-          <span class="improvedmulti-display">
-            ➡️ 
-            {{ formatNumber(calculateCupMultiplier(improvedStats.hoursInTR)) }}
-          </span>
+          <label class="tooltip">
+            <label class="cup-label">{{ isMobile ? 'CatchUp' : 'Catch-Up Multiplier' }}</label>
+          </label>
+          <input
+            type="number"
+            id="catchupMultiplier"
+            class="cup-input"
+            v-model.number="catchupMultiplier"
+            @input="onCatchupMultiplierChange"
+          />    
+          <input
+            type="number"
+            id="improvedcatchupMultiplier"
+            class="cup-input"
+            style="margin-left: 15px;"
+            :value="getImprovedCup()" 
+            readonly 
+          />
         </div>
         <!-- Eingabebereich -->  
         <div v-for="(boost, index) in getBoosts" :key="boost.key" class="boost-row">
           <label class="tooltip">
-            <label :for="boost.key">{{ boost.label }}</label>
+            <label :for="boost.key">{{ isMobile ? boost.mlabel : boost.label }}</label>
             <span v-if="boost.tooltip != 0" class="tooltiptext">{{ boost.tooltip }}</span>
           </label>
           <!-- Number Inputs -->
@@ -50,6 +62,7 @@
             <button @click="decreaseCurrent(boost.key)" tabindex="-1">-</button>
             <input
               type="number"
+              value = "1"
               v-model.number="currentStats[boost.key]"
               :id="boost.key + '-current'"
               :placeholder="'Value for ' + boost.label"
@@ -200,6 +213,7 @@
       return {
         currentStats: {},
         improvedStats: {},
+        catchupMultiplier: 1,
         improvedDate: null,
         datePickerValue: null, 
         isInstructionsModalVisible: false,
@@ -228,7 +242,8 @@
         return calculateAdditionalHours(new Date(), this.improvedDate) === 0;
       },
       currentOrbs() {
-      return calculateOrbs(this.currentStats, boosts);
+        const cupMultiplier = this.catchupMultiplier; // Wert aus Eingabefeld
+        return calculateOrbs(this.currentStats, boosts, cupMultiplier);
       },
       improvedOrbs() {
         return calculateOrbs(this.improvedStats, boosts);
@@ -274,6 +289,19 @@
           this.saveToLocalStorage();
         }
       },
+      onCatchupMultiplierChange() {
+      const min = 1;
+      const max = 2;
+
+      if (this.catchupMultiplier < min) {
+        this.catchupMultiplier = min;
+      } else if (this.catchupMultiplier > max) {
+        this.catchupMultiplier = max;
+      }
+
+      // Begrenzen auf zwei Nachkommastellen
+      this.catchupMultiplier = parseFloat(this.catchupMultiplier.toFixed(4));
+    },
       handleCheckboxChange(key, type) {
         handleCheckboxChange(key, type, this.currentStats, this.improvedStats, this.saveToLocalStorage);
       },
@@ -294,6 +322,9 @@
       toggleInstructionsModal() {
         this.isInstructionsModalVisible = !this.isInstructionsModalVisible;
       },
+      getImprovedCup() {
+        return this.formatNumber(this.calculateCupMultiplier(this.improvedStats.hoursInTR));
+      },
       checkIfMobile() {
         this.isMobile = window.innerWidth < 600;
       },
@@ -310,6 +341,7 @@
               this.improvedStats[key] = newStats[key];
             }
           });
+          
           this.saveToLocalStorage();
         },
         deep: true, // Überwacht alle tiefen Änderungen in currentStats
@@ -334,6 +366,7 @@
       this.improvedDate = stats.improvedDate || new Date(); // Globale Variable initialisieren
       this.datePickerValue = this.improvedDate; // Lokale Kopie setzen
       this.updateImprovedStats();
+      console.log("Initial catchupMultiplier:", this.currentStats.catchupMultiplier);
 
       // Dynamische Erkennung bei Fensteränderungen
       window.addEventListener("resize", this.checkIfMobile);

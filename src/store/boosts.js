@@ -1,6 +1,7 @@
 /**************************************************************************************************** 
 key: Der Schlüssel des Boosts
 label: Der Name des Boosts
+mlabel: Für mobile Ansicht
 type: Der Typ des Boosts (number oder boolean)
 expand: wird benutzt um die checkbox zu deaktivieren, wenn der max Wert erreicht ist
 tooltip: Der Tooltip-Text für den Boost
@@ -13,6 +14,7 @@ export const boosts = [
     {
       key: 'hoursInTR',
       label: 'Hours in TR',
+      mlabel: 'Hours',
       type: 'number',
       expand: '1',
       tooltip: '0',
@@ -33,6 +35,7 @@ export const boosts = [
     {
       key: 'loopMods',
       label: 'Loop Mods',
+      mlabel: 'LMs',
       type: 'number',
       expand: '1',
       tooltip: '0',
@@ -42,6 +45,7 @@ export const boosts = [
     {
       key: 'tr5Special',
       label: 'Diamond Special',
+      mlabel: 'Diamond',
       type: 'number',
       expand: '0',
       tooltip: 'max Value: 10',
@@ -53,6 +57,7 @@ export const boosts = [
     {
       key: 'm0',
       label: 'm0',
+      mlabel: 'm0',
       type: 'number',
       expand: '1',
       tooltip: '0',
@@ -63,6 +68,7 @@ export const boosts = [
     {
       key: 'r9',
       label: 'R9',
+      mlabel: 'R9',
       type: 'number',
       expand: '0',
       tooltip: '0',
@@ -74,6 +80,7 @@ export const boosts = [
     {
       key: 'inscryption52',
       label: 'Inscryption #52',
+      mlabel: 'i#52',
       type: 'number',
       expand: '0',
       tooltip: 'max Value: 8',
@@ -85,6 +92,7 @@ export const boosts = [
     {
       key: 'inscryption78',
       label: 'Inscryption #78',
+      mlabel: 'i#78',
       type: 'number',
       expand: '0',
       tooltip: 'max Value: 8',
@@ -96,6 +104,7 @@ export const boosts = [
     {
       key: 'campaigns',
       label: 'Campaigns',
+      mlabel: 'Camps',
       type: 'number',
       expand: '1',
       tooltip: 'Boon of Ouroboros required, else 0',
@@ -105,6 +114,7 @@ export const boosts = [
     {
       key: 'gadget',
       label: 'Gadget',
+      mlabel: 'Gadget',
       type: 'number',
       expand: '1',
       tooltip: '0',
@@ -120,6 +130,7 @@ export const boosts = [
     {
       key: 'iap',
       label: 'IAP Trav. Pack',
+      mlabel: 'IAP',
       type: 'boolean',
       expand: '0',
       tooltip: '0',
@@ -129,6 +140,7 @@ export const boosts = [
     {
       key: 'hera',
       label: 'Hera Card',
+      mlabel: 'Card#1',
       type: 'boolean',
       expand: '0',
       tooltip: '0',
@@ -138,6 +150,7 @@ export const boosts = [
     {
       key: 'jaxis',
       label: 'Jaxis Card',
+      mlabel: 'Card#2',
       type: 'boolean',
       expand: '0',
       tooltip: '0',
@@ -147,6 +160,7 @@ export const boosts = [
     {
       key: 'db2',
       label: 'Void Badge #1',
+      mlabel: 'VB#1',
       type: 'boolean',
       expand: '1',
       tooltip: '0',
@@ -156,6 +170,7 @@ export const boosts = [
     {
       key: 'db4',
       label: 'Void Badge #2',
+      mlabel: 'VB#2',
       type: 'boolean',
       expand: '1',
       tooltip: '0',
@@ -165,6 +180,7 @@ export const boosts = [
     {
       key: 'db6',
       label: 'Void Badge #3',
+      mlabel: 'VB#3',
       type: 'boolean',
       expand: '1',
       tooltip: '0',
@@ -174,6 +190,7 @@ export const boosts = [
     {
       key: 'db8',
       label: 'Void Badge #4',
+      mlabel: 'VB#4',
       type: 'boolean',
       expand: '1',
       tooltip: '0',
@@ -183,6 +200,7 @@ export const boosts = [
     {
       key: 'db10',
       label: 'Void Badge #5',
+      mlabel: 'VB#5',
       type: 'boolean',
       expand: '1',
       tooltip: '0',

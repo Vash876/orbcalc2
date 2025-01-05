@@ -122,7 +122,7 @@
             id="datePicker"
             :config="flatpickrConfig"
             placeholder="Pick a date"
-            class="extra-input"
+            class="date-picker"
             style="font-size: 9px;"
             tabindex="3"
             @onChange="handleDateChange"
@@ -290,51 +290,69 @@
           <table class="stats-results">
             <thead>
               <tr>
-                <th>TR #</th>
+                <th>TR#</th>
                 <th>Req</th>
-                <th>Start / End Date</th>
+                <th>Start Date</th>
                 <th>Accumulated Orbs</th>
                 <th>All-Time Orbs</th>
-                <th>Status</th>
+                <th>Orbs / Hour</th>
               </tr>
             </thead>
             <tbody>
               <tr
-                v-for="(short, index) in statsData"
+                v-for="(short, index) in statsData.filter((_, i) => getStatus(i).status === 'Fullfilled')"
                 :key="index"
                 :class="{ 'row-missing': getStatus(index).status === 'Missing' }"
               >
                 <td>TR{{ getTRCount(index) }}</td>
                 <td>{{ formatNumber(getTRRequirement(index)) }}</td>
-                <td>
-                  {{ getFormattedStartDate(index) }}
+                <td v-html="getFormattedStartDate(index)">
+                  
                 </td>
                 <td>
-                  {{ formatNumber(getAvailableOrbs(index)) }}
-                  <span> (+{{ formatNumber(getOrbGains(index)) }})</span>
-                </td>
-                <td>
-                  {{ formatNumber(getAllTimeOrbs(index)) }}
-                </td>
-                <td>
-                  <span v-if="getStatus(index).status === 'Fullfilled'" class="status-icon">✅</span>
-                  <span v-else class="status-icon">❌</span>
-                  <span v-if="getStatus(index).status === 'Missing'">
-                    <br />({{ formatNumber(getStatus(index).missing) }})
-                  </span>
-                </td>
-              </tr>
+                <span v-if="index === 0">
+                  0
+                </span>
+                <span v-else>
+                  {{ formatNumber(getAvailableOrbs(index - 1)) }}
+                </span>
+                <span> (+{{ formatNumber(getOrbGains(index)) }})</span>
+              </td>
+              <td>
+                {{ formatNumber(getAllTimeOrbs(index)) }}
+              </td>
+              <td>
+                {{ formatNumber(calculateOrbsPerHour(index)) }}
+              </td>
+            </tr>
 
-              <!-- Zusätzliche Zeile, wenn der letzte Short Fullfilled ist -->
-              <tr
-                v-if="statsData.length && getStatus(statsData.length - 1).status === 'Fullfilled'"
-                :key="'extra-row'"
-              >
-                <td colspan="3" class="next-start-date">
-                  End Date: {{ getFormattedStartDate(statsData.length) }}
+              <!-- Zusätzliche End Result Zeile -->
+              <tr>
+                <td colspan="2">
+                  <b>End Result:</b>
                 </td>
-                <td colspan="3">
-                  All-Time Orbs: {{ formatNumber(getAllTimeOrbs(statsData.length)) }}
+                <td colspan="1" class="next-start-date">
+                  <b v-if="getStatus(statsData.length - 1).status !== 'Missing'" v-html="getFormattedStartDate(statsData.length)"></b>
+                  <b v-else v-html="getFormattedStartDate(statsData.length - 1)"></b>
+                </td>
+                <td colspan="1">
+                  <b v-if="getStatus(statsData.length - 1).status !== 'Missing'">
+                    {{ formatNumber(getAvailableOrbs(statsData.length - 1)) }}
+                  </b>
+                  <b v-else>
+                    {{ formatNumber(getAvailableOrbs(statsData.length - 2)) }}
+                  </b>
+                </td>
+                <td colspan="1">
+                  <b v-if="getStatus(statsData.length - 1).status !== 'Missing'">
+                    {{ formatNumber(getAllTimeOrbs(statsData.length)) }}
+                  </b>
+                  <b v-else> 
+                    {{ formatNumber(getAllTimeOrbs(statsData.length - 1)) }}
+                  </b>
+                </td>
+                <td colspan="1">
+                  <b>{{ formatNumber(calculateTotalOrbsPerHour(statsData.length)) }}</b>
                 </td>
               </tr>
             </tbody>
@@ -461,45 +479,45 @@ export default {
       increaseValue(this.shorts[index], key, max, this.saveToLocalStorage);
       this.syncPermanentBoosts(index, key);
     }
-  },
-  decreaseValue(index = null, key = null) {
-    if (index === null && key === null) {
-      // Standardfall für trCount
-      if (this.shorts[0].trCount > 0) {
-        this.shorts[0].trCount--;
-        this.saveToLocalStorage();
-      }
-    } else {
-      // Standardfall für Boosts
-      const boost = this.getBoosts.find((b) => b.key === key);
-      const lowerValue = this.shorts[index][key];
-
-      if (boost?.permanent === 1 && index > 0) {
-        const upperValue = this.shorts[index - 1][key];
-        if (lowerValue <= upperValue) {
-          return;
+    },
+    decreaseValue(index = null, key = null) {
+      if (index === null && key === null) {
+        // Standardfall für trCount
+        if (this.shorts[0].trCount > 0) {
+          this.shorts[0].trCount--;
+          this.saveToLocalStorage();
         }
+      } else {
+        // Standardfall für Boosts
+        const boost = this.getBoosts.find((b) => b.key === key);
+        const lowerValue = this.shorts[index][key];
+
+        if (boost?.permanent === 1 && index > 0) {
+          const upperValue = this.shorts[index - 1][key];
+          if (lowerValue <= upperValue) {
+            return;
+          }
+        }
+
+        decreaseValue(this.shorts[index], key, 0, this.saveToLocalStorage);
+      }
+    },
+    onHoursInTRBlur(short, key) {
+      let value = short[key];
+
+      if (typeof value === "string" && value.endsWith("d")) {
+        const days = parseInt(value.replace("d", ""), 10);
+        value = isNaN(days) ? 0 : days * 24;
+      } else if (!isNaN(value) && value !== null && value !== "") {
+        value = parseInt(value, 10); // Sicherstellen, dass es eine Ganzzahl ist
+      } else {
+        value = 0; // Zurücksetzen auf 0 bei leerem oder ungültigem Wert
       }
 
-      decreaseValue(this.shorts[index], key, 0, this.saveToLocalStorage);
-    }
-  },
-  onHoursInTRBlur(short, key) {
-    let value = short[key];
-
-    if (typeof value === "string" && value.endsWith("d")) {
-      const days = parseInt(value.replace("d", ""), 10);
-      value = isNaN(days) ? 0 : days * 24;
-    } else if (!isNaN(value) && value !== null && value !== "") {
-      value = parseInt(value, 10); // Sicherstellen, dass es eine Ganzzahl ist
-    } else {
-      value = 0; // Zurücksetzen auf 0 bei leerem oder ungültigem Wert
-    }
-
-    // Aktualisiere den Wert
-    short[key] = value;
-    this.saveToLocalStorage();
-  },
+      // Aktualisiere den Wert
+      short[key] = value;
+      this.saveToLocalStorage();
+    },
     onInputChange(stats, key, max, index, event = null) {
       if (!this.shorts || !this.shorts[index]) {
         return;
@@ -781,7 +799,13 @@ export default {
       this.showStatsModal = !this.showStatsModal;
     },
     getFormattedStartDate(index) {
-      return this.formatDate(index === 0 ? this.startDate : this.getEndDate(index - 1));
+      const formattedDate = this.formatDate(index === 0 ? this.startDate : this.getEndDate(index - 1));
+      
+      // Teile das Format mit einem regulären Ausdruck, um sicherzustellen, dass AM/PM erhalten bleibt
+      const [date, timeWithMeridian] = formattedDate.match(/(.*)\s(\d{1,2}:\d{2}\s[AP]M)/).slice(1, 3);
+
+      // Kombiniere Datum und Zeit mit einem Zeilenumbruch
+      return `${date}<br>${timeWithMeridian}`;
     },
     getAvailableOrbs(index) {
       if (index === 0) {
@@ -796,26 +820,88 @@ export default {
       }
       return this.getAllTimeOrbs(index - 1) + this.getOrbGains(index-1);
     },
+    calculateOrbsPerHour(index) {
+      // Start- und Enddatum für den aktuellen Index
+      const startDate = index === 0 ? new Date(this.startDate) : new Date(this.getEndDate(index - 1));
+      const endDate = new Date(this.getEndDate(index));
+      console.log("Start Date:", startDate, "End Date:", endDate);
+      // Berechnung der Gesamtstunden
+      const totalHours = (endDate - startDate) / (1000 * 60 * 60); // Millisekunden -> Stunden
+      if (totalHours <= 0) {
+        console.log(`Invalid total hours for index ${index}:`, totalHours);
+        return 0;
+      }
+
+      // Orb-Gains für den aktuellen Index
+      const orbGains = this.getOrbGains(index);
+
+      // Orbs pro Stunde berechnen
+      const orbsPerHour = orbGains / totalHours;
+      console.log(`Index: ${index}, Orbs: ${orbGains}, Hours: ${totalHours}, Orbs/Hour: ${orbsPerHour}`);
+      return orbsPerHour;
+    },
+    calculateTotalOrbsPerHour() {
+      // Suche den letzten Short, der den Status "Fullfilled" hat
+      const lastFullfilledIndex = this.shorts
+        .map((_, index) => index) // Erstelle eine Liste von Indizes
+        .reverse() // Durchlaufe sie rückwärts
+        .find(index => this.getStatus(index).status === "Fullfilled"); // Finde den letzten erfüllten Short
+
+      if (lastFullfilledIndex === undefined) {
+        console.log("No Fullfilled Shorts found.");
+        return "N/A"; // Keine gültigen Shorts gefunden
+      }
+
+      // Startdatum aus dem Datepicker
+      const startDate = new Date(this.startDate);
+      // Enddatum des letzten erfüllten Shorts
+      const endDate = new Date(this.getEndDate(lastFullfilledIndex));
+
+      console.log("Start Date:", startDate, "End Date:", endDate);
+
+      // Stunden zwischen Start- und Enddatum berechnen
+      const totalHours = (endDate - startDate) / (1000 * 60 * 60);
+      if (totalHours <= 0) {
+        console.log("Invalid total hours:", totalHours);
+        return "N/A";
+      }
+
+      // Gesamt-Orb-Gains mit getAvailableOrbs berechnen
+      const totalOrbGains = this.getAvailableOrbs(lastFullfilledIndex);
+      console.log("Total Orb Gains from getAvailableOrbs:", totalOrbGains, "Total Hours:", totalHours);
+
+      // Orbs/Hour berechnen
+      const result = totalOrbGains / totalHours;
+      console.log("Total Orbs/Hour Result:", result);
+
+      return result;
+    },
     formatDate(date) {
       const parsedDate = new Date(date);
-      
+
       if (isNaN(parsedDate)) {
         return "Invalid Date"; // Fallback bei ungültigem Datum
       }
 
-      const options = {
+      const optionsDate = {
         year: "2-digit",
         month: "2-digit",
         day: "2-digit",
+      };
+
+      const optionsTime = {
         hour: "2-digit",
         minute: "2-digit",
       };
 
-      // Formatierte Stunden und Minuten
-      const formattedDate = parsedDate.toLocaleString("en-US", options);
+      // Datum und Uhrzeit getrennt formatieren
+      const formattedDate = parsedDate.toLocaleDateString("en-US", optionsDate);
+      const formattedTime = parsedDate
+        .toLocaleTimeString("en-US", optionsTime)
+        .replace(/(:\d{2})( AM| PM)/, ':00$2'); // Minuten manuell auf 00 setzen
 
-      // Minuten manuell auf 00 setzen
-      return formattedDate.replace(/(:\d{2})( AM| PM)/, ':00$2');
+      // Mit Zeilenumbruch zurückgeben
+      return `${formattedDate} ${formattedTime}`;
     },
     getEndDate(index) {
       const startDate = new Date(index === 0 ? this.startDate : this.getEndDate(index - 1));
