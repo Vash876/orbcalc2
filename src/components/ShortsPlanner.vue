@@ -799,10 +799,24 @@ export default {
       this.showStatsModal = !this.showStatsModal;
     },
     getFormattedStartDate(index) {
-      const formattedDate = this.formatDate(index === 0 ? this.startDate : this.getEndDate(index - 1));
-      
-      // Teile das Format mit einem regulären Ausdruck, um sicherzustellen, dass AM/PM erhalten bleibt
-      const [date, timeWithMeridian] = formattedDate.match(/(.*)\s(\d{1,2}:\d{2}\s[AP]M)/).slice(1, 3);
+      // Nutze das aktuelle Datum, falls kein Startdatum gesetzt ist
+      const fallbackDate = new Date();
+
+      // Hole das Datum, entweder das aktuelle oder ein berechnetes
+      const relevantDate = index === 0 
+        ? this.startDate || fallbackDate 
+        : this.getEndDate(index - 1) || fallbackDate;
+
+      const formattedDate = this.formatDate(relevantDate);
+
+      // Fallback prüfen, falls match null zurückgibt
+      const match = formattedDate.match(/(.*)\s(\d{1,2}:\d{2}\s[AP]M)/);
+
+      if (!match) {
+        return formattedDate; // Gib das gesamte Datum zurück, wenn das Format nicht übereinstimmt
+      }
+
+      const [, date, timeWithMeridian] = match;
 
       // Kombiniere Datum und Zeit mit einem Zeilenumbruch
       return `${date}<br>${timeWithMeridian}`;
@@ -904,11 +918,19 @@ export default {
       return `${formattedDate} ${formattedTime}`;
     },
     getEndDate(index) {
-      const startDate = new Date(index === 0 ? this.startDate : this.getEndDate(index - 1));
-      const hoursToAdd = this.shorts[index]?.hoursInTR || 0;
-      startDate.setHours(startDate.getHours() + hoursToAdd);
-      return startDate;
-    },
+  const fallbackDate = new Date(); // Standard auf das aktuelle Datum setzen
+  const startDate = new Date(index === 0 ? this.startDate || fallbackDate : this.getEndDate(index - 1));
+  const hoursToAdd = this.shorts[index]?.hoursInTR || 0;
+
+  // Fallback für ungültige oder leere Startdaten
+  if (isNaN(startDate)) {
+    return fallbackDate; // Nutze das aktuelle Datum, wenn das Startdatum ungültig ist
+  }
+
+  startDate.setHours(startDate.getHours() + hoursToAdd);
+  return startDate;
+},
+
 
     resetAllFields,
     formatNumber, calculateMultiplier,
