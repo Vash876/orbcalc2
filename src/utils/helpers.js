@@ -1,4 +1,4 @@
-export function saveToLocalStorage(currentStats, improvedStats, improvedDate, shorts, boostSelection) {
+export function saveToLocalStorage(currentStats, improvedStats, improvedDate, shorts, boostSelection, calcFrags) {
   const existingData = JSON.parse(localStorage.getItem("orbCalculatorData")) || {};
 
   if (shorts && shorts.length > 0) {
@@ -13,6 +13,7 @@ export function saveToLocalStorage(currentStats, improvedStats, improvedDate, sh
     improvedDate: improvedDate !== null ? improvedDate : existingData.improvedDate,
     shorts: shorts !== null ? shorts : existingData.shorts,
     boostSelection: boostSelection !== null ? boostSelection : existingData.boostSelection,
+    calcFrags: calcFrags !== undefined ? calcFrags : existingData.calcFrags, // Speicherung der Checkbox
   };
 
   localStorage.setItem("orbCalculatorData", JSON.stringify(newData));
@@ -360,5 +361,3 @@ export function validateAllTimeOrbsInput(input) {
     return 0; // Standardwert für ungültige Eingaben
   }
 }
-
-

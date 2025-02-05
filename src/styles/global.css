@@ -136,6 +136,11 @@ body {
     color: #f0f0f0;
     font-size: 12px;
   }
+
+  .frag-boost {
+    font-weight: bold;
+    color:#cb8efd;
+  }
   
   /* Buttons für + und - */
   .improved-input {
@@ -196,13 +201,22 @@ body {
     margin-left: 25px;
   }
 
-  .boost-row .shortmulti-display {
-    max-width: 60px;
+  .boost-row .shortmulti-display,
+  .boost-row .fragmulti-display {
+    display: inline-flex; /* Damit beide nebeneinander bleiben */
+    align-items: center; /* Vertikal zentrieren */
     font-weight: bold;
-    display: flex; /* Flexbox aktivieren */
-    align-items: center; /* Vertikale Zentrierung */
-    margin-left: 15px;
-    height: 100%; /* Höhe des Containers */
+  }
+  
+  .boost-row .shortmulti-display {
+    margin-left: 10px;;
+    width: 60px; /* Kleiner Abstand zum Frag-Multiplier */
+  }
+  
+  .boost-row .fragmulti-display {
+    color: #cb8efd; /* Optional: Farbe für Frag-Multiplier ändern */
+    font-weight: bold;
+    margin-left: 5px; /* Abstand zum ersten Multiplier */
   }
 
   .boost-row .cup-label {
@@ -405,22 +419,6 @@ body {
     border-top: 1px solid #444; /* Oberer Rahmen */
     font-size: 1.2em; /* Größere Schriftgröße für Werte */
     word-wrap: break-word; /* Zeilenumbruch bei langen Inhalten */
-  }
-  
-  /* Feste Breiten für die Spalten */
-  .short-results-table th:nth-child(1),
-  .short-results-table td:nth-child(1) {
-    width: 33%; /* Erste Spalte */
-  }
-  
-  .short-results-table th:nth-child(2),
-  .short-results-table td:nth-child(2) {
-    width: 33%; /* Zweite Spalte */
-  }
-  
-  .short-results-table th:nth-child(3),
-  .short-results-table td:nth-child(3) {
-    width: 34%; /* Dritte Spalte */
   }
   
   /* Instructions */
@@ -725,11 +723,42 @@ body {
   visibility: hidden; /* Unsichtbar, aber Platz bleibt erhalten */
 }
 
+/* Table und Charts Navi */
+.result-navigation {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.nav-button {
+  padding: 10px 20px;
+  margin: 0 10px;
+  background-color: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+.nav-button.active {
+  background-color: #2995c7;
+  color: #fff;
+  border-color: #2995c7;
+}
+
+.result-table, .result-chart {
+  margin-top: 20px;
+}
+
+/* Chart */
+
+
 /* Footer */
 footer {
   margin-top: 20px;
   text-align: center;
   font-size: 12px;
-  color: #888;
+  color: #888888;
 }
   

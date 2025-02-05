@@ -1,3 +1,5 @@
+import { boosts } from "../store/boosts"; // Importiere die Boost-Liste aus dem Store
+
 //Berechnung des Wertes eines Boosts
 export function calculateMultiplier(boost, value, allValues = {}) {
   if (!value) {
@@ -13,6 +15,68 @@ export function calculateMultiplier(boost, value, allValues = {}) {
   return 1; // Standardwert, falls kein Multiplikator definiert ist
 }
  
+//Berechnung des Frag-Multipliers
+export function calculateFragMultiplier(boostKey, value, values = {}) {
+  const boost = boosts.find(b => b.key === boostKey);
+
+  if (!boost || boost.fragmulti === undefined) return null; // Falls kein Frag-Multiplier existiert, nichts anzeigen
+
+  if (!value) {
+    return 1; // Falls Checkbox nicht aktiviert ist, bleibt der Multiplikator 1
+  }
+
+  if (boostKey === "r6" && (!value || value === 0)) return 0;
+
+  const attr3Checked = values && Object.prototype.hasOwnProperty.call(values, "attr3") ? values.attr3 : false;
+
+  //Sonderregel für `m0`: Nur berechnen, wenn `attr3` aktiviert ist
+  if (boostKey === "m0" && !attr3Checked) {
+    return 1; // Wenn `attr3` nicht aktiviert ist, bleibt `m0 = 1`
+  }
+
+  if (typeof boost.fragmulti === "function") {
+    return boost.fragmulti(value); // Falls `fragmulti` eine Funktion ist, berechne den Wert
+  } else {
+    return boost.fragmulti; // Falls `fragmulti` eine feste Zahl ist, direkt zurückgeben
+  }
+}
+
+//Berechnung der Campaign Fragments
+export function calculateCampaignFrags(values, firstShort) {
+  if (!values || !firstShort) return 0;
+
+  const attr3Checked = Object.prototype.hasOwnProperty.call(values, "attr3") ? values.attr3 : firstShort.attr3;
+
+  const m0 = calculateFragMultiplier("m0", values.m0 ?? firstShort.m0, { ...values, attr3: attr3Checked }) || 1;
+  const attr1 = calculateFragMultiplier("attr1", values.attr1 ?? firstShort.attr1, values) || 1;
+  const campfragdet = calculateFragMultiplier("campfragdet", values.campfragdet ?? firstShort.campfragdet, values) || 1;
+  const pow2 = calculateFragMultiplier("pow2", values.pow2 ?? firstShort.pow2, values) || 1;
+  const campaigns = (values.campaigns ?? firstShort.campaigns) || 0;
+  let r6 = values.r6 ?? firstShort.r6 ?? 0; // Sicherstellen, dass r6 nicht `undefined` ist
+  let r6Add = 2.75 * r6;
+  let r6Multi = Math.pow(1.05, r6);
+
+  let totalFrags = 0;
+
+  console.log("==== Campaign Frag Calculation Start ====");
+  console.log(`Base Multipliers: m0=${m0}, attr1=${attr1}, campfragdet=${campfragdet}, pow2=${pow2}, r6add=${r6Add}, r6multi=${r6Multi}, campaigns=${campaigns}`);
+
+  for (let i = 0; i <= campaigns-1; i++) {
+    let baseFrags = (2.5 + r6Add) * (m0 * attr1 * campfragdet * pow2 * r6Multi);
+
+    let campaignMulti = 1;
+    if (i === 35) campaignMulti = 2;
+    if (i === 39) campaignMulti = 3;
+    if (i === 43) campaignMulti = 13;
+
+    const fragGain = baseFrags * campaignMulti * Math.pow(1.03, i);
+    totalFrags += fragGain;
+    console.log(`Campaign ${i}: BaseFrags=${baseFrags.toFixed(2)}, Multi=${campaignMulti}, Scaling=1.03^${i} => FragGain=${fragGain.toFixed(2)}`);
+  }
+
+  return totalFrags;
+}
+
 //Berechnet die zusätzlichen Stunden seit dem ausgewählten Datum
 export function calculateAdditionalHours(currentDate, selectedDate) {
   // Konvertiere die Eingaben in Date-Objekte
@@ -61,10 +125,32 @@ export function calculateOrbs(values, boosts, overrideCatchUpMultiplier = null) 
 
 //Berechnet die Requirement für den TR
 export function calculateOrbRequirement(trCount, allTimeOrbs) {
-  if (!trCount || !allTimeOrbs) {
+  if (trCount === undefined || allTimeOrbs === undefined) {
     return 0;
   }
 
+  // Feste Werte für TR 0 bis TR 11
+  const fixedTRValues = [
+    1,     // TR 0
+    5.6,   // TR 1
+    9.4,   // TR 2
+    14.6,  // TR 3
+    24.9,  // TR 4
+    51.2,  // TR 5
+    151,   // TR 6
+    404,   // TR 7
+    734,   // TR 8
+    1060,  // TR 9
+    1150,  // TR 10
+    2600   // TR 11
+  ];
+
+  // Falls trCount im festen Wertebereich ist, gib den entsprechenden Wert zurück
+  if (trCount >= 0 && trCount <= 11) {
+    return fixedTRValues[trCount];
+  }
+
+  // Standard-Berechnung für TR > 11
   return (
     (5 * Math.pow(1.2 + trCount * 0.008, trCount) +
       5000 +
@@ -72,6 +158,7 @@ export function calculateOrbRequirement(trCount, allTimeOrbs) {
     Math.pow(1.02, trCount - 11)
   );
 }
+
 
 //Berechnet die zusätzlichen Stunden für fehlende Orbs
 export function calculateMissingHours(

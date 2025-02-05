@@ -59,7 +59,6 @@
                     <li>
                       If you do not meet the requirement, missing hours in TR will be displayed in the "Hours in TR" row.
                     </li>
-                    <li>TR requirements below TR12 are wrong. If you have the correct formula, feel free to reach out to me on Discord.</li>
                   </ul>
                 </li>
                 <li>
@@ -83,7 +82,17 @@
           </button>
           
         </div>
-
+        <div class="boost-row">
+          <label for="FragBoosts">Calc Camp Frags</label>
+          <input
+            type="checkbox"
+            v-model="calcFrags"
+            tabindex="0"
+            @change="saveToLocalStorage"
+            id="calcFrags"
+            class="current-checkbox"
+          />
+        </div>
         <div class="boost-row">
           <label for="trCount">TR Count</label>
           <button @click="decreaseValue()" tabindex="-1">-</button>
@@ -137,12 +146,13 @@
           v-for="(boost, bIndex) in getFilteredBoosts(index, 'number')"
           :key="boost.key"
           class="boost-row"
-        > <label class="tooltip" style="margin-left: 0; margin-right: 15px;">
-            <label>{{ boost.label }}</label>
-            <span v-if="boost.tooltip != 0" class="tooltiptext">{{ boost.tooltip }}</span>
-            <span v-if="boost.key === 'hoursInTR'" class="tooltiptext">
-                  Enter hours or days (e.g., 6d). Days will be automatically converted to hours.
-            </span>
+        > 
+          <label :class="{ 'frag-boost': boost.isFragBoost }" class="tooltip" style="margin-left: 0; margin-right: 15px;">
+            <label :for="boost.key">{{ isMobile ? boost.mlabel : boost.label }}</label>
+              <span v-if="boost.tooltip != 0" class="tooltiptext">{{ boost.tooltip }}</span>
+              <span v-if="boost.key === 'hoursInTR'" class="tooltiptext">
+                    Enter hours or days (e.g., 6d). Days will be automatically converted to hours.
+              </span>
           </label>
           <button @click="decreaseValue(index, boost.key, boost.max)" tabindex="-1">-</button>
           <input
@@ -174,8 +184,11 @@
           <!-- Multiplier Display -->              
           <!-- nur desktop -->
           <div v-if="!isMobile">
-            <span  class="shortmulti-display">
-              {{ formatNumber(calculateMultiplier(boost, short[boost.key], short)) }}
+            <span class="shortmulti-display">
+              {{ boost.multiplier ? formatNumber(calculateMultiplier(boost, short[boost.key], short)) : ' ' }}
+            </span>
+            <span  class="fragmulti-display" v-if="calcFrags && calculateFragMultiplier(boost.key, short[boost.key]) !== null"> 
+              {{ formatNumber(calculateFragMultiplier(boost.key, short[boost.key], short)) }}
             </span>
           </div>            
 
@@ -191,7 +204,6 @@
         </div>
       </div>
 
-
       <!-- Checkboxen (Boolean Boosts) -->
       <div class="checkbox-inputs">
         <div
@@ -199,7 +211,7 @@
           :key="boost.key"
           class="boost-row"
         >
-          <label>{{ boost.label }}</label>
+          <label :class="{ 'frag-boost': boost.isFragBoost }" :for="boost.key">{{ isMobile ? boost.mlabel : boost.label }}</label>
           <input
             type="checkbox"
             v-model="short[boost.key]"
@@ -226,9 +238,12 @@
             <span 
               class="shortmulti-display"
               :style="index > 0 ? { marginLeft: '43px' } : {}">
-              {{ formatNumber(calculateMultiplier(boost, short[boost.key], short)) }}
+              {{ boost.multiplier ? formatNumber(calculateMultiplier(boost, short[boost.key], short)) : " " }}
             </span>
-          </div>   
+            <span class="fragmulti-display" v-if="calculateFragMultiplier(boost.key, short[boost.key]) !== null"> 
+              {{ formatNumber(calculateFragMultiplier(boost.key, short[boost.key], short)) }}
+            </span>
+          </div>
         </div>
         <div>
         <table class="short-results-table">
@@ -236,6 +251,7 @@
             <tr>
               <th>TR Req</th>
               <th>Orb Gains</th>
+              <th v-if="calcFrags">Campaign Frags</th>
               <th>Status</th>
             </tr>
           </thead>
@@ -243,6 +259,7 @@
             <tr>
               <td>TR {{ getTRCount(index) }} Req: {{ formatNumber(getTRRequirement(index) || 0) }}</td>
               <td>{{ formatNumber(getOrbGains(index)) }}</td>
+              <td v-if="calcFrags">{{ formatNumber(calculateCampaignFrags(short, shorts[0])) }}</td>
               <td :class="getStatus(index).status === 'Missing' ? 'text-red' : 'text-green'">
                 <div class="status-container">
                   <span v-if="getStatus(index).status === 'Fullfilled'" class="status-icon">✅</span>
@@ -284,83 +301,108 @@
       <!-- Modal -->
       <div v-if="showStatsModal" class="modal-overlay" @click.self="toggleStatsModal">
         <div class="modal-content">
+          <!-- Navigation Links -->
+          <button 
+            class="nav-button" 
+            :class="{ active: activeView === 'table' }" 
+            @click="switchView('table')"
+          >
+            Table
+          </button>
+          <button 
+            class="nav-button" 
+            :class="{ active: activeView === 'chart' }" 
+            @click="switchView('chart')"
+          >
+            Chart
+          </button>
           <button class="modal-close" @click="toggleStatsModal">X</button>
-          <h2>Results</h2>
 
-          <table class="stats-results">
-            <thead>
-              <tr>
-                <th>TR#</th>
-                <th>Req</th>
-                <th>Start Date</th>
-                <th>Accumulated Orbs</th>
-                <th>All-Time Orbs</th>
-                <th>Orbs / Hour</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="(short, index) in statsData.filter((_, i) => getStatus(i).status === 'Fullfilled')"
-                :key="index"
-                :class="{ 'row-missing': getStatus(index).status === 'Missing' }"
-              >
-                <td>TR{{ getTRCount(index) }}</td>
-                <td>{{ formatNumber(getTRRequirement(index)) }}</td>
-                <td v-html="getFormattedStartDate(index)">
-                  
+        <!-- Tabelle -->
+          <div v-if="activeView === 'table'" class="result-table">
+            <table class="stats-results">
+              <thead>
+                <tr>
+                  <th>TR#</th>
+                  <th>Req</th>
+                  <th>Start Date</th>
+                  <th>Accumulated Orbs</th>
+                  <th>All-Time Orbs</th>
+                  <th v-if="calcFrags">Campaign Frags</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="(short, index) in statsData.filter((_, i) => getStatus(i).status === 'Fullfilled')"
+                  :key="index"
+                  :class="{ 'row-missing': getStatus(index).status === 'Missing' }"
+                >
+                  <td>TR{{ getTRCount(index) }}</td>
+                  <td>{{ formatNumber(getTRRequirement(index)) }}</td>
+                  <td v-html="getFormattedStartDate(index)">
+                    
+                  </td>
+                  <td>
+                  <span v-if="index === 0">
+                    0
+                  </span>
+                  <span v-else>
+                    {{ formatNumber(getAvailableOrbs(index - 1)) }}
+                  </span>
+                  <span> (+{{ formatNumber(getOrbGains(index)) }})</span>
                 </td>
                 <td>
-                <span v-if="index === 0">
-                  0
-                </span>
-                <span v-else>
-                  {{ formatNumber(getAvailableOrbs(index - 1)) }}
-                </span>
-                <span> (+{{ formatNumber(getOrbGains(index)) }})</span>
-              </td>
-              <td>
-                {{ formatNumber(getAllTimeOrbs(index)) }}
-              </td>
-              <td>
-                {{ formatNumber(calculateOrbsPerHour(index)) }}
-              </td>
-            </tr>
-
-              <!-- Zusätzliche End Result Zeile -->
-              <tr>
-                <td colspan="2">
-                  <b>End Result:</b>
+                  {{ formatNumber(getAllTimeOrbs(index)) }}
                 </td>
-                <td colspan="1" class="next-start-date">
-                  <b v-if="getStatus(statsData.length - 1).status !== 'Missing'" v-html="getFormattedStartDate(statsData.length)"></b>
-                  <b v-else v-html="getFormattedStartDate(statsData.length - 1)"></b>
-                </td>
-                <td colspan="1">
-                  <b v-if="getStatus(statsData.length - 1).status !== 'Missing'">
-                    {{ formatNumber(getAvailableOrbs(statsData.length - 1)) }}
-                  </b>
-                  <b v-else>
-                    {{ formatNumber(getAvailableOrbs(statsData.length - 2)) }}
-                  </b>
-                </td>
-                <td colspan="1">
-                  <b v-if="getStatus(statsData.length - 1).status !== 'Missing'">
-                    {{ formatNumber(getAllTimeOrbs(statsData.length)) }}
-                  </b>
-                  <b v-else> 
-                    {{ formatNumber(getAllTimeOrbs(statsData.length - 1)) }}
-                  </b>
-                </td>
-                <td colspan="1">
-                  <b>{{ formatNumber(calculateTotalOrbsPerHour(statsData.length)) }}</b>
-                </td>
+                <td v-if="calcFrags">{{ formatNumber(calculateCampaignFrags(short, shorts[0])) }}</td>
               </tr>
-            </tbody>
-          </table>
+
+                <!-- Zusätzliche End Result Zeile -->
+                <tr>
+                  <td colspan="2">
+                    <b>End Result:</b>
+                  </td>
+                  <td colspan="1" class="next-start-date">
+                    <b v-if="getStatus(statsData.length - 1).status !== 'Missing'" v-html="getFormattedStartDate(statsData.length)"></b>
+                    <b v-else v-html="getFormattedStartDate(statsData.length - 1)"></b>
+                  </td>
+                  <td colspan="1">
+                    <b v-if="getStatus(statsData.length - 1).status !== 'Missing'">
+                      {{ formatNumber(getAvailableOrbs(statsData.length - 1)) }}
+                    </b>
+                    <b v-else>
+                      {{ formatNumber(getAvailableOrbs(statsData.length - 2)) }}
+                    </b>
+                  </td>
+                  <td colspan="1">
+                    <b v-if="getStatus(statsData.length - 1).status !== 'Missing'">
+                      {{ formatNumber(getAllTimeOrbs(statsData.length)) }}
+                    </b>
+                    <b v-else> 
+                      {{ formatNumber(getAllTimeOrbs(statsData.length - 1)) }}
+                    </b>
+                  </td>
+                  <td v-if="calcFrags" colspan="1">
+                    <b>{{ formatNumber(getTotalFrags) }}</b>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <!-- Diagramm -->
+          <div v-else-if="activeView === 'chart'" class="result-chart">
+            <apexchart
+              ref="apexChart"
+              v-if="chartOptions"
+              :options="chartOptions"
+              :series="chartSeries"
+            ></apexchart>
+          </div>  
         </div>
       </div>
     </div>
   </div>
+
 </template>
 
 
@@ -375,16 +417,18 @@ import {
   resetAllFields,
   validateAllTimeOrbsInput,
 } from "../utils/helpers";
-import { calculateMultiplier, calculateOrbs, calculateOrbRequirement, calculateMissingHours } from "../utils/calculations";
+import { calculateMultiplier, calculateCampaignFrags, calculateFragMultiplier, calculateOrbs, calculateOrbRequirement, calculateMissingHours } from "../utils/calculations";
 import { mapGetters } from "vuex";
 import FlatPickr from "vue-flatpickr-component";
 import "flatpickr/dist/themes/dark.css";
+import VueApexCharts from "vue3-apexcharts";
 
 export default {
   name: "ShortsPlanner",
 
   components: {
     FlatPickr,
+    apexchart: VueApexCharts,
   },
 
   data() {
@@ -392,6 +436,7 @@ export default {
       improvedStats: {},
       shorts: [],
       boostSelection: {},
+      calcFrags: false,
       startDate: new Date(),
       allTimeOrbsInput: "",
       isMobile: window.innerWidth < 600,
@@ -406,16 +451,91 @@ export default {
         defaultMinute: 0, // Minuten standardmäßig auf 0 setzen
         defaultDate: new Date(new Date().setMinutes(0)), // Aktuelles Datum und Zeit als Standardwert
       },
+      activeView: "table", // Standardansicht ist die Tabelle
+      chartOptions: {
+      chart: {
+        type: "line",
+        height: 350,
+        toolbar: {
+          show: true,
+          tools: {
+            download: false,
+            selection: false,
+            zoom: false,
+            zoomin: false,
+            zoomout: false,
+            pan: false,
+            reset: false,
+          },
+        },
+      },
+      colors: ["#00b894", "#ff0000", "#2196F3"], // Hauptfarben für die Graphen
+      theme: {
+        mode: "dark", // Optional: "dark" für ein dunkles Thema
+        palette: "palette4", // Optional: Farbenpalette
+      },
+      xaxis: {
+        type: "datetime",
+        title: {
+          text: "Date",
+          style: {
+            color: "#fff", // Schriftfarbe für Titel der X-Achse
+          },
+        },
+        labels: {
+          style: {
+            colors: "#fff", // Schriftfarbe für die Labels der X-Achse
+            fontSize: "12px",
+          },
+        },
+      },
+      yaxis: {
+        title: {
+          text: "All-Time Orbs",
+          style: {
+            color: "#fff", // Schriftfarbe für Titel der Y-Achse
+          },
+        },
+        labels: {
+          style: {
+            colors: "#fff", // Schriftfarbe für die Labels der Y-Achse
+            fontSize: "12px",
+          },
+        },
+      },
+      tooltip: {
+        theme: "dark", // Optional: "dark" für ein dunkles Tooltip-Thema
+        shared: true,
+        intersect: false, // Tooltip auch bei Hover zwischen Punkten anzeigen
+        style: {
+          fontSize: "14px",
+        },
+
+      },
+      legend: {
+        position: "top",
+        labels: {
+          colors: "#fff", // Schriftfarbe der Legenden
+        },
+      },
+      stroke: {
+        width: 8, // Linienbreite
+        curve: 'straight', // Optionen: 'smooth', 'straight', 'stepline'
+        showNulls: false,
+      },
+    },
+
+      chartSeries: [], // Hier kommen die Daten für das Diagramm
     };
   },
 
   computed: {
-    ...mapGetters(["getBoosts"]),
+    ...mapGetters(["getOrbBoosts", "getFragBoosts", "getAllBoosts"]),
     inputBoosts() {
-      return this.getBoosts.filter((boost) => boost.type === "number");
+      return this.getOrbBoosts.filter((boost) => boost.type === "number");
     },
     checkboxBoosts() {
-      return this.getBoosts.filter((boost) => boost.type === "boolean");
+      return this.getOrbBoosts.filter((boost) => boost.type === "boolean");
     },
     isLastShortMissing() {
       if (this.shorts.length === 0) {
@@ -429,11 +549,18 @@ export default {
     statsData() {
       return this.shorts; // Hier basieren wir die Tabelle auf den Short-Fenstern
     },
+    getTotalFrags() {
+    if (!this.calcFrags) return 0; // Falls Frag-Berechnung deaktiviert ist, gib 0 zurück
+
+    return this.shorts.reduce((total, short) => {
+      return total + calculateCampaignFrags(short, this.shorts[0]);
+    }, 0);
+  }
   },
 
   methods: {
     initializeBoostSelection() {
-      return this.getBoosts.reduce((selection, boost) => {
+      return this.getOrbBoosts.reduce((selection, boost) => {
         selection[boost.key] = false;
         return selection;
       }, {});
@@ -447,8 +574,11 @@ export default {
 
       saveToLocalStorage(null, null, null, this.shorts, this.boostSelection);
     },
+    switchView(view) {
+      this.activeView = view;
+    },
     addNewShort() {
-      const defaultStats = Object.fromEntries(this.getBoosts.map((boost) => [boost.key, 0]));
+      const defaultStats = Object.fromEntries(this.getOrbBoosts.map((boost) => [boost.key, 0]));
 
       // Übernehme Werte aus dem zuletzt geöffneten Fenster, falls vorhanden
       const lastShort = this.shorts.length > 0 ? this.shorts[this.shorts.length - 1] : {};
@@ -481,26 +611,33 @@ export default {
     }
     },
     decreaseValue(index = null, key = null) {
-      if (index === null && key === null) {
-        // Standardfall für trCount
+      if (index === null || key === null) {
         if (this.shorts[0].trCount > 0) {
           this.shorts[0].trCount--;
           this.saveToLocalStorage();
         }
-      } else {
-        // Standardfall für Boosts
-        const boost = this.getBoosts.find((b) => b.key === key);
-        const lowerValue = this.shorts[index][key];
-
-        if (boost?.permanent === 1 && index > 0) {
-          const upperValue = this.shorts[index - 1][key];
-          if (lowerValue <= upperValue) {
-            return;
-          }
-        }
-
-        decreaseValue(this.shorts[index], key, 0, this.saveToLocalStorage);
+        return;
       }
+
+      const boost = [...this.getOrbBoosts, ...this.getFragBoosts].find((b) => b.key === key);
+      if (!boost) {
+        console.warn(`⚠️ Boost ${key} not found!`);
+        return;
+      }
+
+      const lowerValue = this.shorts[index][key];
+
+      // **Fix: Verhindern, dass der Wert kleiner wird als im vorherigen Short**
+      if (boost?.permanent === 1 && index > 0) {
+        const upperValue = this.shorts[index - 1][key];
+        if (lowerValue <= upperValue) {
+          console.log(`❌ Cannot decrease ${key} below ${upperValue}`);
+          return; // Stoppe die Reduzierung
+        }
+      }
+
+      decreaseValue(this.shorts[index], key, 0, this.saveToLocalStorage);
+      this.saveToLocalStorage();
     },
     onHoursInTRBlur(short, key) {
       let value = short[key];
@@ -518,30 +655,35 @@ export default {
       short[key] = value;
       this.saveToLocalStorage();
     },
-    onInputChange(stats, key, max, index, event = null) {
+
+    onInputChange(stats, key, max, index) {
       if (!this.shorts || !this.shorts[index]) {
         return;
       }
 
-      const boost = this.getBoosts.find((b) => b.key === key);
+      // 🛠️ FIX: Suche `boost` in BOTH `getOrbBoosts` AND `getFragBoosts`
+      const boost = [...this.getOrbBoosts, ...this.getFragBoosts].find((b) => b.key === key);
+
+      if (!boost) {
+        console.warn(`⚠️ Boost ${key} not found in getOrbBoosts or getFragBoosts!`);
+        return;
+      }
+
       let value = stats[key];
 
       // Spezielle Verarbeitung für `hoursInTR`
       if (key === "hoursInTR") {
         if (typeof value === "string" && value.endsWith("d")) {
-          // Konvertiere Tage in Stunden
           const days = parseInt(value.replace("d", ""), 10);
           value = isNaN(days) ? 0 : days * 24;
         } else if (!isNaN(value)) {
-          // Stelle sicher, dass es eine Ganzzahl ist
           value = parseInt(value, 10);
         } else {
-          value = 0; // Ungültige Eingaben auf 0 setzen
+          value = 0;
         }
-        stats[key] = value; // Speichere den bereinigten Wert
+        stats[key] = value;
       }
 
-      // Automatische Berechnung bei Änderungen
       if (key === "hoursInTR" || this.getStatus(index).status.startsWith("Missing")) {
         this.getMissingHours(index);
       }
@@ -549,21 +691,48 @@ export default {
       if (boost?.permanent === 1 && index > 0) {
         const upperValue = this.shorts[index - 1][key];
 
-        if (event === null && value < upperValue) {
+        if (value < upperValue) {
           stats[key] = upperValue;
           this.saveToLocalStorage();
           return;
+        }
+
+        if (typeof boost.fragmulti === "function") {
+          const prevFragMulti = boost.fragmulti(this.shorts[index - 1][key]);
+          const currentFragMulti = boost.fragmulti(value);
+
+          if (currentFragMulti < prevFragMulti) {
+            stats[key] = this.shorts[index - 1][key];
+            this.saveToLocalStorage();
+            return;
+          }
+        }
+      }
+
+      // Korrektur für spätere Shorts
+      if (boost?.permanent === 1) {
+        for (let i = index + 1; i < this.shorts.length; i++) {
+          if (this.shorts[i][boost.key] < this.shorts[i - 1][boost.key]) {
+            this.shorts[i][boost.key] = this.shorts[i - 1][boost.key];
+          }
         }
       }
 
       handleInputChange(stats, key, max, this.saveToLocalStorage);
       this.syncPermanentBoosts(index, key);
     },
+
     getFilteredBoosts(index, type) {
-      return index === 0
-        ? this.getBoosts.filter((boost) => boost.type === type)
-        : this.getBoosts.filter((boost) => this.boostSelection[boost.key] && boost.type === type);
+      return this.getAllBoosts
+        .filter((boost) => boost.type === type)
+        .filter((boost) => index === 0 || this.boostSelection[boost.key])
+        .filter((boost) => this.calcFrags || !this.getFragBoosts.some(frag => frag.key === boost.key)) // Dynamische Anzeige
+        .map((boost) => ({
+          ...boost,
+          isFragBoost: this.getFragBoosts.some(frag => frag.key === boost.key) && this.calcFrags, // Markiere nur wenn aktiv
+        }));
     },
+
     getShortTitle(index) {
       return `Short #${index + 1}`;
     },
@@ -575,7 +744,7 @@ export default {
     },
     calculateTabIndex(shortIndex, boostIndex, isCheckbox = false) {
       // Anzahl der Boosts
-      const totalBoosts = this.getBoosts.length;
+      const totalBoosts = this.getOrbBoosts.length;
 
       // Anzahl der Checkboxen in jedem Fenster (Checkboxen kommen nach allen Nummern-Feldern)
       const checkboxOffset = isCheckbox ? totalBoosts : 0;
@@ -656,7 +825,7 @@ export default {
       return isDisabled; // Gibt zurück, ob die Checkbox deaktiviert sein sollte
     },
     syncPermanentBoosts(index, key) {
-      const boost = this.getBoosts.find((b) => b.key === key);
+      const boost = this.getOrbBoosts.find((b) => b.key === key);
       if (boost && boost.permanent === 1) {
         const updatedValue = this.shorts[index][key];
         for (let i = index + 1; i < this.shorts.length; i++) {
@@ -710,7 +879,7 @@ export default {
       const shortValues = this.shorts[index];
       const boostValues = {};
 
-      this.getBoosts.forEach((boost) => {
+      this.getOrbBoosts.forEach((boost) => {
         const isSelected = this.boostSelection[boost.key] === true; // Prüfe explizit auf true
 
         if (isSelected) {
@@ -722,7 +891,7 @@ export default {
         }
       });
 
-      return calculateOrbs(boostValues, this.getBoosts);
+      return calculateOrbs(boostValues, this.getOrbBoosts);
     },
     getStatus(index) {
       const orbGains = this.getOrbGains(index);
@@ -772,7 +941,7 @@ export default {
           currentHoursInTR,
           this.getTRRequirement(index),
           this.calculateOrbsWithHours.bind(this),
-          this.getBoosts,
+          this.getOrbBoosts,
           index
         );
       }
@@ -918,22 +1087,141 @@ export default {
       return `${formattedDate} ${formattedTime}`;
     },
     getEndDate(index) {
-  const fallbackDate = new Date(); // Standard auf das aktuelle Datum setzen
-  const startDate = new Date(index === 0 ? this.startDate || fallbackDate : this.getEndDate(index - 1));
-  const hoursToAdd = this.shorts[index]?.hoursInTR || 0;
+      const fallbackDate = new Date(); // Standard auf das aktuelle Datum setzen
+      const startDate = new Date(index === 0 ? this.startDate || fallbackDate : this.getEndDate(index - 1));
+      const hoursToAdd = this.shorts[index]?.hoursInTR || 0;
 
-  // Fallback für ungültige oder leere Startdaten
-  if (isNaN(startDate)) {
-    return fallbackDate; // Nutze das aktuelle Datum, wenn das Startdatum ungültig ist
-  }
+      // Fallback für ungültige oder leere Startdaten
+      if (isNaN(startDate)) {
+        return fallbackDate; // Nutze das aktuelle Datum, wenn das Startdatum ungültig ist
+      }
 
-  startDate.setHours(startDate.getHours() + hoursToAdd);
-  return startDate;
-},
+      startDate.setHours(startDate.getHours() + hoursToAdd);
+      return startDate;
+    },
 
+    loadChartData() {
+      // Berechnung des Startpunktes für TR Requirement basierend auf Start-Orbs und TR Count
+      const initialTRRequirement = this.shorts.length > 0 
+        ? calculateOrbRequirement(this.shorts[0].trCount, this.shorts[0].allTimeOrbs)
+        : 0;
+
+      // Initialdatenpunkte
+      const initialDataPoint = {
+        x: new Date(this.startDate).toISOString(), // Startdatum des Plans
+        y: this.shorts.length > 0 ? this.shorts[0].allTimeOrbs : 0, // Anfangs-All-Time Orbs
+      };
+
+      const initialTRPoint = {
+        x: new Date(this.startDate).toISOString(), // Startdatum des Plans
+        y: initialTRRequirement, // Berechneter TR Requirement-Wert am Startpunkt
+      };
+
+      // Chartdaten
+      this.chartSeries = [
+        // All-Time Orbs Serie
+        {
+          name: "All-Time Orbs",
+          data: [
+            initialDataPoint, // Startpunkt hinzufügen
+            ...this.shorts.map((short, index) => ({
+              x: new Date(this.getEndDate(index)).toISOString(), // Enddatum jedes Shorts
+              y: this.getAllTimeOrbs(index+1), // All-Time Orbs für jedes Short
+            })),
+          ],
+        },
+        // TR Requirement Serie
+        {
+          name: "TR Requirement",
+          data: [
+            initialTRPoint, // Startpunkt für TR Requirement hinzufügen
+            ...this.shorts.map((short, index) => ({
+              x: new Date(this.getEndDate(index)).toISOString(), // Enddatum jedes Shorts
+              y: this.getTRRequirement(index+1), // TR Requirement für jedes Short
+            })),
+          ],
+        },
+        // Orbs per Short Serie
+        {
+        name: "Orbs per Short",
+        data: [
+          ...this.shorts.map((short, index) => ({
+            x: new Date(index === 0 ? this.startDate : this.getEndDate(index - 1)).toISOString(),
+            y: this.getOrbGains(index), // Orbs pro Short
+          })),
+          {
+            // Füge einen zusätzlichen Punkt hinzu, um das Diagramm korrekt zu beenden
+            x: new Date(this.getEndDate(this.shorts.length - 1)).toISOString(),
+            y: null, // Kein Wert für den letzten Punkt
+          },
+        ],},
+      ];
+      // Formatierte Tooltip-Labels
+      this.chartOptions = {
+        ...this.chartOptions,
+        dataLabels: {
+          enabled: true, // Aktiviert die Anzeige der Labels
+          formatter: function (value) {
+            if (value === null) return ''; // Leerer Text für `null`-Werte
+            return formatNumber(value); // Formatiere andere Werte
+          },
+          style: {
+            colors: ["#000"], // Farbe der Datenlabels
+          },
+        },
+        yaxis: {
+          labels: {
+            formatter: (val) => formatNumber(val), // Formatiere die Achsen-Breakpoints
+          },
+          title: {
+            style: {
+              color: "#FFFFFF", // Falls du die Schriftfarbe anpassen willst
+            },
+          },
+        },
+        tooltip: {
+          y: {
+            formatter: function (value) {
+              if (value === null) return "N/A"; // Kein Wert für Nullpunkte
+              return new Intl.NumberFormat("en-US", {
+                notation: "compact",
+                maximumFractionDigits: 2,
+              }).format(value);
+            },
+          },
+        },
+        xaxis: {
+          type: 'datetime', // Falls die X-Achse Datumswerte verwendet
+          xaxis: {
+            type: 'datetime',
+            labels: {
+              formatter: function (val) {
+                const date = new Date(val);
+                return date.toLocaleDateString('en-US', {
+                  month: 'short',
+                  day: 'numeric',
+                  year: '2-digit',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                });
+              },
+            },
+          },
+          min: new Date(this.startDate).getTime(), // Startdatum aus dem Datepicker
+          max: new Date(this.getEndDate(this.shorts.length)).getTime() + (2 * 24 * 60 * 60 * 1000), // Enddatum + 2 Tage (in Millisekunden)
+        },
+      };
+    },
+    updateChart() {
+      if (this.$refs.apexChart) {
+        this.$refs.apexChart.updateSeries(this.chartSeries);
+      } else {
+        console.warn("ApexChart ref is not available");
+      }
+    },
 
     resetAllFields,
-    formatNumber, calculateMultiplier,
+    formatNumber, calculateMultiplier, calculateFragMultiplier, calculateCampaignFrags,
   },
   watch: {
     boostSelection: {
@@ -961,17 +1249,29 @@ export default {
     },
 
     shorts: {
-      handler(newShorts) {
-        newShorts.forEach((short, index) => {
-          this.getMissingHours(index);
-        });
+      handler() {
+        this.loadChartData(); // Aktualisiere die Chart-Daten
+        this.$nextTick(() => this.updateChart()); // Aktualisiere den Chart
       },
       deep: true,
+    },
+
+    calcFrags: {
+      handler(newValue) {
+        saveToLocalStorage(null, null, null, this.shorts, this.boostSelection, newValue);
+      },
+    },
+
+    startDate: {
+      handler() {
+        this.loadChartData(); // Aktualisiere die Chart-Daten
+        this.$nextTick(() => this.updateChart()); // Aktualisiere den Chart
+      },
     },
   },
 
   mounted() {
-    const stats = loadOrInitializeStats(this.getBoosts);
+    const stats = loadOrInitializeStats(this.getOrbBoosts);
     this.improvedStats = stats.improvedStats;
     this.shorts = stats.shorts;
     this.boostSelection = stats.boostSelection;
@@ -989,8 +1289,34 @@ export default {
       this.syncBoostsFromFirstShort();
     }
 
+    if (stats.shorts.length > 0 && stats.shorts[0].startDate) {
+      this.startDate = new Date(stats.shorts[0].startDate);
+    } else {
+      this.startDate = new Date(); // Standardwert: Aktuelles Datum
+    }
+
+    const existingData = JSON.parse(localStorage.getItem("orbCalculatorData")) || {};
+
+    if (existingData.calcFrags !== undefined) {
+      this.calcFrags = existingData.calcFrags;
+    }
+
+    this.shorts.forEach((short) => {
+      this.getFragBoosts.forEach((boost) => {
+        if (short[boost.key] === undefined) {
+          short[boost.key] = 0;
+        }
+      });
+    });
+
     // Dynamische Erkennung bei Fensteränderungen
     window.addEventListener("resize", this.checkIfMobile);
+    this.loadChartData(); // Initiale Daten laden
+    this.$nextTick(() => {
+      if (this.$refs.apexChart) {
+        this.updateChart(); // Aktualisiere den Chart
+      }
+    });
   },
 };
 </script>

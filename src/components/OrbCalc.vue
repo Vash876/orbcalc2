@@ -53,7 +53,7 @@
           />
         </div>
         <!-- Eingabebereich -->  
-        <div v-for="(boost, index) in getBoosts" :key="boost.key" class="boost-row">
+        <div v-for="(boost, index) in getOrbBoosts" :key="boost.key" class="boost-row">
           <label class="tooltip">
             <label :for="boost.key">{{ isMobile ? boost.mlabel : boost.label }}</label>
             <span v-if="boost.tooltip != 0" class="tooltiptext">{{ boost.tooltip }}</span>
@@ -233,12 +233,12 @@
     },
 
     computed: {
-      ...mapGetters(["getBoosts"]),
+      ...mapGetters(["getOrbBoosts"]),
       inputBoosts() { 
-        return this.getBoosts.filter((boost) => boost.type === "number");
+        return this.getOrbBoosts.filter((boost) => boost.type === "number");
       },
       checkboxBoosts() {
-        return this.getBoosts.filter((boost) => boost.type === "boolean");
+        return this.getOrbBoosts.filter((boost) => boost.type === "boolean");
       },
       isDateInPast() {
         return calculateAdditionalHours(new Date(), this.improvedDate) === 0;

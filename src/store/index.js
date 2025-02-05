@@ -18,7 +18,11 @@ export const store = createStore({
     }, {}), // Auswahl der Boosts, die in weiteren Shorts verwendet werden sollen
   },
   getters: {
-    getBoosts: () => boosts, // Gibt die Boosts zurück
+    getAllBoosts: () => boosts, // Gibt alle Boosts zurück
+    getFragBoosts: () =>
+      boosts.filter((boost) => boost.orbcalc === 0), // Gibt die Boosts für Fragments zurück
+    getOrbBoosts: () =>
+      boosts.filter((boost) => boost.orbcalc === 1), // Gibt die Boosts für Orbs zurück
     getCurrentStats: (state) => state.currentStats, // Gibt currentStats zurück
     getImprovedStats: (state) => state.improvedStats, // Gibt improvedStats zurück
     getShorts: (state) => state.shorts, // Gibt die Shorts zurück
