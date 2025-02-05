@@ -225,7 +225,7 @@ export const boosts = [
     mlabel: 'Res#89',
     type: 'number',
     orbcalc: 0,
-    expand: '1',
+    expand: '0',
     tooltip: '0',
     permanent: 1,
     fragmulti: (value) => {
