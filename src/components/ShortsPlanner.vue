@@ -20,10 +20,10 @@
           >
             Instructions
           </button>
-<button @click="resetAllFields" class="reset-button">Reset All Fields</button>
+          <button @click="resetAllFields" class="reset-button">Reset All Fields</button>
           <div v-if="isInstructionsModalVisible" class="modal-overlay" @click.self="toggleInstructionsModal">
             <div class="modal-content">
-              <button class="modal-close" @click="toggleInstructionsModal">x</button>
+              <button class="modal-close" @click="toggleInstructionsModal">X</button>
               <h2>Shorts Planner Instructions</h2>
               <ul>
                 <li>
@@ -149,6 +149,11 @@
         > 
           <label :class="{ 'frag-boost': boost.isFragBoost }" class="tooltip" style="margin-left: 0; margin-right: 15px;">
             <label :for="boost.key">{{ isMobile ? boost.mlabel : boost.label }}</label>
+            <InfoCircleFilledIcon 
+              v-if="boost.key === 'm0' ? calcFrags : boost.tooltip !== '0'" 
+              class="tooltip-icon" 
+            />
+
               <span v-if="boost.tooltip != 0" class="tooltiptext">{{ boost.tooltip }}</span>
               <span v-if="boost.key === 'hoursInTR'" class="tooltiptext">
                     Enter hours or days (e.g., 6d). Days will be automatically converted to hours.
@@ -422,12 +427,14 @@ import { mapGetters } from "vuex";
 import FlatPickr from "vue-flatpickr-component";
 import "flatpickr/dist/themes/dark.css";
 import VueApexCharts from "vue3-apexcharts";
+import { InfoCircleFilledIcon } from 'vue-tabler-icons';
 
 export default {
   name: "ShortsPlanner",
 
   components: {
     FlatPickr,
+    InfoCircleFilledIcon,
     apexchart: VueApexCharts,
   },
 

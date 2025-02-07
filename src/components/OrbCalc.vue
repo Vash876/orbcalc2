@@ -12,7 +12,7 @@
 
           <div v-if="isInstructionsModalVisible" class="modal-overlay" @click.self="toggleInstructionsModal">
             <div class="modal-content">
-              <button class="modal-close" @click="toggleInstructionsModal">x</button>
+              <button class="modal-close" @click="toggleInstructionsModal">X</button>
               <h2>Instructions</h2>
               <ul>
                 <li>Enter your Current Stats in the left fields.</li>
@@ -56,7 +56,10 @@
         <div v-for="(boost, index) in getOrbBoosts" :key="boost.key" class="boost-row">
           <label class="tooltip">
             <label :for="boost.key">{{ isMobile ? boost.mlabel : boost.label }}</label>
-            <span v-if="boost.tooltip != 0" class="tooltiptext">{{ boost.tooltip }}</span>
+
+            <InfoCircleFilledIcon v-if="boost.tooltip !== '0' && boost.key !== 'm0'" class="tooltip-icon" />
+
+            <span v-if="boost.tooltip !== '0' && boost.key !== 'm0'"  class="tooltiptext">{{ boost.tooltip }}</span>
           </label>
           <!-- Number Inputs -->
           <template v-if="boost.type === 'number'">
@@ -202,6 +205,7 @@
   import { mapGetters } from "vuex";
   import { boosts } from '../store/boosts';
   import FlatPickr from "vue-flatpickr-component";
+  import { InfoCircleFilledIcon } from 'vue-tabler-icons';
   import "flatpickr/dist/themes/dark.css";
   
   export default {
@@ -209,6 +213,7 @@
 
     components: {
       FlatPickr,
+      InfoCircleFilledIcon
     },
 
     data() {

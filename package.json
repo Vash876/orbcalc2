@@ -16,6 +16,7 @@
     "vue": "^3.2.13",
     "vue-flatpickr-component": "^11.0.5",
     "vue-router": "^4.0.3",
+    "vue-tabler-icons": "^2.21.0",
     "vue3-apexcharts": "^1.8.0",
     "vuex": "^4.0.0"
   },

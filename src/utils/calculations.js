@@ -51,6 +51,7 @@ export function calculateCampaignFrags(values, firstShort) {
   const attr1 = calculateFragMultiplier("attr1", values.attr1 ?? firstShort.attr1, values) || 1;
   const campfragdet = calculateFragMultiplier("campfragdet", values.campfragdet ?? firstShort.campfragdet, values) || 1;
   const pow2 = calculateFragMultiplier("pow2", values.pow2 ?? firstShort.pow2, values) || 1;
+  const research89 = calculateFragMultiplier("research89", values.research89 ?? firstShort.research89, values) || 1;
   const campaigns = (values.campaigns ?? firstShort.campaigns) || 0;
   let r6 = values.r6 ?? firstShort.r6 ?? 0; // Sicherstellen, dass r6 nicht `undefined` ist
   let r6Add = 2.75 * r6;
@@ -62,7 +63,7 @@ export function calculateCampaignFrags(values, firstShort) {
   console.log(`Base Multipliers: m0=${m0}, attr1=${attr1}, campfragdet=${campfragdet}, pow2=${pow2}, r6add=${r6Add}, r6multi=${r6Multi}, campaigns=${campaigns}`);
 
   for (let i = 0; i <= campaigns-1; i++) {
-    let baseFrags = (2.5 + r6Add) * (m0 * attr1 * campfragdet * pow2 * r6Multi);
+    let baseFrags = (2.5 + r6Add) * (m0 * attr1 * campfragdet * pow2 * research89 * r6Multi);
 
     let campaignMulti = 1;
     if (i === 35) campaignMulti = 2;

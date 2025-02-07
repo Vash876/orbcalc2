@@ -52,7 +52,7 @@ export const boosts = [
     type: 'number',
     orbcalc: 1,
     expand: '0',
-    tooltip: 'max Value: 10',
+    tooltip: '0',
     permanent: 1,
     multiplier: (value) => 1 + 0.01 * value,
     max: 10
@@ -108,7 +108,7 @@ export const boosts = [
     type: 'number',
     orbcalc: 1,
     expand: '0',
-    tooltip: 'max Value: 8',
+    tooltip: '0',
     permanent: 1,
     multiplier: (value) => Math.pow(1.03, value),
     max: 8
@@ -121,7 +121,7 @@ export const boosts = [
     type: 'number',
     orbcalc: 1,
     expand: '0',
-    tooltip: 'max Value: 8',
+    tooltip: '0',
     permanent: 1,
     multiplier: (value) => Math.pow(1.08, value),
     max: 8
@@ -142,7 +142,7 @@ export const boosts = [
   {
     key: 'shipinstalls',
     label: 'Ship Installs',
-    mlabel: 'Ship Installs',
+    mlabel: 'Installs',
     type: 'number',
     orbcalc: 1,
     expand: '1',
