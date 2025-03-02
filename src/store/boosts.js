@@ -146,7 +146,7 @@ export const boosts = [
     type: 'number',
     orbcalc: 1,
     expand: '1',
-    tooltip: 'Boon e4100 MP required, else 0',
+    tooltip: 'Boon e4600 MP required, else 0',
     multiplier: (value) => Math.pow(1.000015, value),
   },
 
