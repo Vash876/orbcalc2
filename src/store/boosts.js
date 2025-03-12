@@ -128,6 +128,19 @@ export const boosts = [
   },
 
   {
+    key: 'inscryption101',
+    label: 'Inscryption #101',
+    mlabel: 'i#101',
+    type: 'number',
+    orbcalc: 1,
+    expand: '0',
+    tooltip: '0',
+    permanent: 1,
+    multiplier: (value) => Math.pow(1.08, value),
+    max: 8
+  },
+
+  {
     key: 'campaigns',
     label: 'Campaigns',
     mlabel: 'Camps',
