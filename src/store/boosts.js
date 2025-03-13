@@ -164,6 +164,18 @@ export const boosts = [
   },
 
   {
+    key: 'ouroinstalls',
+    label: 'Ouro Installs',
+    mlabel: 'OuroInstalls',
+    type: 'number',
+    orbcalc: 0,
+    expand: '1',
+    tooltip: 'Boon e4600 MP required, else 0',
+    permanent: 1,
+    fragmulti: (value) => Math.pow(1.01, value),
+  },
+
+  {
     key: 'oogadget',
     label: 'Orb Gadget',
     mlabel: 'OOdget',
