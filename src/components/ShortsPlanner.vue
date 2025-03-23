@@ -295,7 +295,7 @@
 
       <!-- Add New Short Button -->
       <button
-        v-if="shorts.length < 10"
+        v-if="shorts.length < 50"
         :disabled="isLastShortMissing"
         @click="addNewShort"
         class="add-short-button"
